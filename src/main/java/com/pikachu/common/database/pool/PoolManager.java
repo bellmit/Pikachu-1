@@ -5,7 +5,6 @@ import com.pikachu.common.database.pool.core.PoolType;
 import com.pikachu.common.database.pool.factory.DruidPool;
 import com.pikachu.common.database.pool.factory.HikariCpPool;
 import com.pikachu.common.database.pool.core.IPool;
-import com.x.pikachu.common.database.pool.factory.*;
 
 import java.util.HashMap;
 import java.util.Map;
