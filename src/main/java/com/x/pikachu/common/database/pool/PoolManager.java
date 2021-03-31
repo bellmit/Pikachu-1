@@ -3,10 +3,7 @@ package com.x.pikachu.common.database.pool;
 import com.x.pikachu.common.database.pool.core.IPool;
 import com.x.pikachu.common.database.pool.core.PoolConfig;
 import com.x.pikachu.common.database.pool.core.PoolType;
-import com.x.pikachu.common.database.pool.factory.DruidPool;
-import com.x.pikachu.common.database.pool.factory.DruidPoolConfig;
-import com.x.pikachu.common.database.pool.factory.HikariCpPool;
-import com.x.pikachu.common.database.pool.factory.HikariPoolConfig;
+import com.x.pikachu.common.database.pool.factory.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,13 +21,11 @@ public final class PoolManager {
         if(!POOLS.containsKey(config.getPoolName())){
             PoolType poolType = config.getPoolType();
             if (poolType == PoolType.DRUID) {
-                DruidPoolConfig druidConfig = (DruidPoolConfig) config;
-                IPool druidPool = new DruidPool(druidConfig);
-                POOLS.put(config.getPoolName(), druidPool);
+                IPool druid = new DruidPool(config);
+                POOLS.put(config.getPoolName(), druid);
             }else{
-                HikariPoolConfig hikariConfig = (HikariPoolConfig) config;
-                IPool hikariPool = new HikariCpPool(hikariConfig);
-                POOLS.put(config.getPoolName(), hikariPool);
+                IPool hikari = new HikariCpPool(config);
+                POOLS.put(config.getPoolName(), hikari);
             }
         }
         return POOLS.get(config.getPoolName());
@@ -54,7 +49,7 @@ public final class PoolManager {
         POOLS.clear();
     }
     
-    public IPool getPool(String name) {
+    public static IPool getPool(String name) {
         return POOLS.get(name);
     }
     

@@ -1,12 +1,11 @@
-package com.x.pikachu.common.database.core;
+package com.x.pikachu.framework.database.core;
 
 /**
  * @Desc sql参数信息
- * @Date 2020/11/21 00:15
+ * @Date 2019-12-05 21:57
  * @Author AD
  */
-public final class SqlParams {
-    
+public final class SQLParams {
     // ------------------------ 变量定义 ------------------------
     
     /**
@@ -26,13 +25,7 @@ public final class SqlParams {
     
     // ------------------------ 构造方法 ------------------------
     
-    /**
-     * 构造方法
-     * @param sql SQL语句
-     * @param params SQL参数
-     * @param sqlTypes SQL参数类型，参见java.sql.Types
-     */
-    public SqlParams(String sql, Object[] params, int[] sqlTypes) {
+    public SQLParams(String sql, Object[] params, int[] sqlTypes) {
         this.sql = sql;
         this.params = params;
         this.types = sqlTypes;

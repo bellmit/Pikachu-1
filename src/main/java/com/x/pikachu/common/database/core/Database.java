@@ -1,7 +1,7 @@
 package com.x.pikachu.common.database.core;
 
 import com.x.pikachu.common.database.pool.core.IPool;
-import com.x.pikachu.util.ArrayHelper;
+import com.x.pikachu.common.util.PikachuArrays;
 
 import java.sql.*;
 
@@ -31,13 +31,13 @@ public abstract class Database implements IDatabase {
      * @throws Exception
      */
     @Override
-    public int execute(SqlParams params) throws Exception {
+    public int execute(String sql, Object[] params, int[] sqlTypes) throws Exception {
         // 获取连接
         try (Connection conn = pool.getConnection();
              // 获取预编译对象
-             PreparedStatement ps = conn.prepareStatement(params.getSql())) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             // 填充sql参数
-            fillPrepareStatement(ps, params);
+            fillPrepareStatement(ps, sql, params, sqlTypes);
             // 返回执行结果所影响的行数
             return ps.executeUpdate();
         }
@@ -55,9 +55,9 @@ public abstract class Database implements IDatabase {
     @Override
     public int[] executeBatch(String[] sqls) throws Exception {
         // 判断sql语句是否为空
-        if (ArrayHelper.isEmpty(sqls)) {
+        if (PikachuArrays.isEmpty(sqls)) {
             // 返回空数组
-            return ArrayHelper.EMPTY_INT;
+            return PikachuArrays.EMPTY_INT;
         }
         // 获取连接对象
         try (Connection conn = pool.getConnection()) {
@@ -90,16 +90,16 @@ public abstract class Database implements IDatabase {
      * @throws Exception
      */
     @Override
-    public int executeReader(IDataReader reader, SqlParams params) throws Exception {
+    public int executeReader(IDataReader reader, String sql, Object[] params, int[] sqlTypes) throws Exception {
         // 打印sql语句
-        System.out.println(">>> " + params.getSql());
+        System.out.println(">>> " + sql);
         // 获取连接
         try (Connection conn = pool.getConnection();
              // 获取sql预编译对象，并指定光标只能向前移动，并发类型为只读
-             PreparedStatement ps = conn.prepareStatement(params.getSql(), ResultSet.TYPE_FORWARD_ONLY,
+             PreparedStatement ps = conn.prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY,
                      ResultSet.CONCUR_READ_ONLY)) {
             // 填充参数
-            fillPrepareStatement(ps, params);
+            fillPrepareStatement(ps, sql, params, sqlTypes);
             // 执行查询
             ResultSet rs = ps.executeQuery();
             // 读取结果
@@ -108,15 +108,15 @@ public abstract class Database implements IDatabase {
     }
     
     @Override
-    public Object[] executeReturnGeneratedKeys(SqlParams params, String[] rows) throws Exception {
+    public Object[] executeReturnGeneratedKeys(String sql, Object[] params, int[] sqlTypes, String[] rows) throws Exception {
         // 打印sql语句
-        System.out.println(">>> " + params.getSql());
+        System.out.println(">>> " + sql);
         // 获取连接对象
         try (Connection conn = pool.getConnection();
              // 获取一个可生成key的sql预编译对象
-             PreparedStatement ps = conn.prepareStatement(params.getSql(), Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             // 填充sql参数
-            fillPrepareStatement(ps, params);
+            fillPrepareStatement(ps, sql, params, sqlTypes);
             // 定义结果数组
             Object[] result = null;
             // 执行更新并判断结果是否有效
@@ -125,7 +125,7 @@ public abstract class Database implements IDatabase {
                 try (ResultSet rs = ps.getGeneratedKeys()) {
                     // 判断是否还有key
                     if (rs.next()) {
-                        if (ArrayHelper.isEmpty(rows)) {
+                        if (PikachuArrays.isEmpty(rows)) {
                             int count = rs.getMetaData().getColumnCount();
                             result = new Object[count];
                             for (int i = 0; i < count; ++i) {
@@ -147,28 +147,25 @@ public abstract class Database implements IDatabase {
     }
     
     // ------------------------ 私有方法 ------------------------
-    private void fillPrepareStatement(PreparedStatement ps, SqlParams params) throws SQLException {
-        // 获取参数
-        Object[] arg = params.getParams();
-        // 获取参数类型
-        int[] sqlTypes = params.getTypes();
+    private void fillPrepareStatement(PreparedStatement ps, String sql, Object[] args, int[] sqlTypes) throws SQLException {
+        
         // 判断预编译对象的有效性
         if (ps != null) {
             // 判断判断参数有效性
-            if (ArrayHelper.isNotEmpty(arg)) {
+            if (!PikachuArrays.isEmpty(args)) {
                 // 判断参数类型有效性
-                if (ArrayHelper.isNotEmpty(sqlTypes)) {
+                if (!PikachuArrays.isEmpty(sqlTypes)) {
                     // 取参数和参数类型之间的最小值
-                    int min = Math.min(arg.length, sqlTypes.length);
+                    int min = Math.min(args.length, sqlTypes.length);
                     // 以最小值为限填充参数
                     for (int i = 0; i < min; ++i) {
                         // 给预编鱼对象设置参数
-                        ps.setObject(i + 1, arg[i], sqlTypes[i]);
+                        ps.setObject(i + 1, args[i], sqlTypes[i]);
                     }
                 } else {
                     // 如果参数类型为空，则自动填充预编译对象参数
-                    for (int i = 0; i < arg.length; i++) {
-                        ps.setObject(i + 1, arg[i]);
+                    for (int i = 0; i < args.length; i++) {
+                        ps.setObject(i + 1, args[i]);
                     }
                 }
             }

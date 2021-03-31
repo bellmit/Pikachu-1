@@ -16,7 +16,7 @@ public interface IDatabase {
      *
      * @throws Exception
      */
-    int execute(SqlParams params) throws Exception;
+    int execute(String sql, Object[] params, int[] sqlTypes) throws Exception;
     
     /**
      * 批量执行
@@ -39,7 +39,7 @@ public interface IDatabase {
      *
      * @throws Exception
      */
-    int executeReader(IDataReader reader, SqlParams params) throws Exception;
+    int executeReader(IDataReader reader, String sql, Object[] params, int[] sqlTypes) throws Exception;
     
     /**
      * 使用数据读取器分页读取
@@ -67,6 +67,6 @@ public interface IDatabase {
      *
      * @throws Exception
      */
-    Object[] executeReturnGeneratedKeys(SqlParams params, String[] rows) throws Exception;
+    Object[] executeReturnGeneratedKeys(String sql, Object[] params, int[] sqlTypes, String[] rows) throws Exception;
     
 }

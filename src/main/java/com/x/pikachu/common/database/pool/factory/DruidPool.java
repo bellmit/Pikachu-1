@@ -1,9 +1,9 @@
 package com.x.pikachu.common.database.pool.factory;
 
 import com.alibaba.druid.pool.DruidDataSource;
-import com.alibaba.druid.pool.DruidDataSourceFactory;
 import com.x.pikachu.common.database.core.DatabaseType;
 import com.x.pikachu.common.database.pool.core.IPool;
+import com.x.pikachu.common.database.pool.core.PoolConfig;
 
 import java.sql.Connection;
 
@@ -22,7 +22,7 @@ public final class DruidPool implements IPool {
     /**
      * 连接池配置对象
      */
-    private final DruidPoolConfig config;
+    private final PoolConfig config;
     // ------------------------ 构造方法 ------------------------
     
     /**
@@ -32,24 +32,42 @@ public final class DruidPool implements IPool {
      *
      * @throws Exception
      */
-    public DruidPool(DruidPoolConfig config) {
+    public DruidPool(PoolConfig config) {
+        this.config = config;
         try {
-            this.pool = (DruidDataSource) DruidDataSourceFactory.createDataSource(config.toProperties());
+            DruidDataSource druid = new DruidDataSource();
+            druid.setUrl(config.getUrl());
+            druid.setDriverClassName(config.getDriver());
+            druid.setUsername(config.getUser());
+            druid.setPassword(config.getPassword());
+            druid.setInitialSize(config.getInitialSize());
+            druid.setMaxActive(config.getMaxActive());
+            druid.setMinIdle(config.getMinIdle());
+            druid.setMaxActive(config.getMaxActive());
+            druid.setKeepAlive(config.isKeepActive());
+            druid.setMinEvictableIdleTimeMillis(config.getMinEvictableIdleTimeMillis());
+            druid.setTimeBetweenConnectErrorMillis(config.getTimeBetweenEvictionRunsMillis());
+            druid.setValidationQuery(config.getValidationQuery());
+            druid.setTestWhileIdle(config.isTestWhileIdle());
+            druid.setTestOnBorrow(config.isTestOnBorrow());
+            druid.setTestOnReturn(config.isTestOnReturn());
+            druid.setPoolPreparedStatements(config.isPoolPreparedStatements());
+            this.pool = druid;
         } catch (Exception e) {
             e.printStackTrace();
         }
-        this.config = config;
+        
     }
     // ------------------------ 方法定义 ------------------------
     
     @Override
-    public Connection getConnection() throws Exception {
-        return pool.getConnection();
+    public DatabaseType getDatabaseType() {
+        return config.getDatabaseType();
     }
     
     @Override
-    public DatabaseType getDatabaseType() {
-        return config.getDatabaseType();
+    public Connection getConnection() throws Exception {
+        return pool.getConnection();
     }
     
     @Override

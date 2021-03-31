@@ -12,6 +12,12 @@ import java.sql.Connection;
 public interface IPool {
     
     /**
+     * 获取数据库类型
+     * @return
+     */
+    DatabaseType getDatabaseType();
+    
+    /**
      * 获取数据库连接
      *
      * @return
@@ -19,13 +25,6 @@ public interface IPool {
      * @throws Exception
      */
     Connection getConnection() throws Exception;
-    
-    /**
-     * 获取数据库类型
-     *
-     * @return
-     */
-    DatabaseType getDatabaseType();
     
     /**
      * 连接池状态信息

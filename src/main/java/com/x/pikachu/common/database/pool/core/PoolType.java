@@ -8,4 +8,13 @@ package com.x.pikachu.common.database.pool.core;
 public enum PoolType {
     HIKARI,
     DRUID;
+    
+    public static PoolType getPoolType(String poolType) {
+        for (PoolType type : PoolType.values()) {
+            if (type.toString().equalsIgnoreCase(poolType)) {
+                return type;
+            }
+        }
+        return null;
+    }
 }
