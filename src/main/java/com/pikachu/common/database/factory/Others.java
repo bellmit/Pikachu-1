@@ -32,6 +32,7 @@ public class Others extends Database {
             this.startIndex = startIndex;
         }
         
+        @Override
         public int read(ResultSet resultSet) throws Exception {
             resultSet.absolute(this.startIndex + 1);
             return reader.read(resultSet);

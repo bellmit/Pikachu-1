@@ -8,6 +8,7 @@ import com.pikachu.common.collection.Where;
 import com.pikachu.common.database.core.DatabaseType;
 
 import java.lang.reflect.Method;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.time.LocalDate;
@@ -156,32 +157,47 @@ public final class SQLHelper {
      * @return java类型值
      */
     public static Object toJavaData(Object dbValue, MethodInfo set) {
+        // 获取Java值对应的sql类型
         int sqlType = set.getSqlType();
         switch (sqlType) {
+            //    byte
             case Types.TINYINT:
                 return PikachuConverts.toByte(dbValue);
-            case Types.BIGINT:
-                return PikachuConverts.toLong(dbValue);
-            case Types.CHAR:
-                Class<?> paramType = set.getMethod().getParameterTypes()[0];
-                TypeMapping mapper = TypeMapping.getMapper(paramType);
-                if (TypeMapping.BOOL != mapper) {
-                    return dbValue == null ? null : String.valueOf(dbValue).trim();
-                } else {
-                    return dbValue != null && "Y".equals(String.valueOf(dbValue));
-                }
-            case Types.NUMERIC:
-                return PikachuConverts.toBigDecimal(dbValue);
-            case Types.INTEGER:
-                return PikachuConverts.toInt(dbValue);
+            //    short
             case Types.SMALLINT:
                 return PikachuConverts.toShort(dbValue);
+            //    int
+            case Types.INTEGER:
+                return PikachuConverts.toInt(dbValue);
+            //    long
+            case Types.BIGINT:
+                return PikachuConverts.toLong(dbValue);
+            //    float
             case Types.FLOAT:
                 return PikachuConverts.toFloat(dbValue);
+            //    double
             case Types.DOUBLE:
                 return PikachuConverts.toDouble(dbValue);
+            //    char（这里使用1个字符（'Y'）代替boolean，因此需要先判断是boolean还是char）
+            case Types.CHAR:
+                // 获取需要设置的数值类型
+                Class<?> paramType = set.getMethod().getParameterTypes()[0];
+                // 获取类型映射枚举
+                TypeMapping mapper = TypeMapping.getMapper(paramType);
+                // 不是boolean类型，转成字符串
+                if (TypeMapping.BOOL != mapper) {
+                    return dbValue == null ? null : dbValue.toString();
+                } else {
+                    // 是boolean类型，判断是Y或N（数据库使用Y或N表示boolean类型）
+                    return dbValue != null && "Y".equals(dbValue.toString());
+                }
+                //    string
             case Types.VARCHAR:
-                return dbValue == null ? null : String.valueOf(dbValue).trim();
+                return dbValue == null ? null : dbValue.toString();
+            //    bigDecimal
+            case Types.NUMERIC:
+                return PikachuConverts.toBigDecimal(dbValue);
+            //    timestamp
             case Types.TIMESTAMP:
                 Date date = null;
                 if (dbValue == null) {
@@ -192,11 +208,18 @@ public final class SQLHelper {
                 } else if (dbValue instanceof Timestamp) {
                     Timestamp timestamp = (Timestamp) dbValue;
                     date = new Date(timestamp.getTime());
+                } else if (dbValue instanceof Time) {
+                    Time time = (Time) dbValue;
+                    date = new Date(time.getTime());
                 }
                 if (date != null) {
+                    // 获取Java Bean类set方法的参数类型数组
                     Class<?>[] paramTypes = set.getMethod().getParameterTypes();
+                    // 判断参数是否有效
                     if (paramTypes != null && paramTypes.length > 0) {
+                        // 获取第一个参数
                         Class<?> param = paramTypes[0];
+                        // LocalDateTime类型
                         if (LocalDateTime.class.equals(param)) {
                             try {
                                 return PikachuConverts.toLocalDateTime(date);
@@ -204,6 +227,7 @@ public final class SQLHelper {
                                 e.printStackTrace();
                             }
                         }
+                        // LocalDate类型
                         if (LocalDate.class.equals(param)) {
                             try {
                                 return PikachuConverts.toLocalDateTime(date).toLocalDate();
@@ -211,6 +235,7 @@ public final class SQLHelper {
                                 e.printStackTrace();
                             }
                         }
+                        // LocalTime类型
                         if (LocalTime.class.equals(param)) {
                             try {
                                 return PikachuConverts.toLocalDateTime(date).toLocalTime();
@@ -222,32 +247,51 @@ public final class SQLHelper {
                     return date;
                 }
                 return dbValue;
+            case Types.BLOB:
+                return null;
+            case Types.CLOB:
+                return null;
             default:
                 return dbValue;
         }
     }
     
     public static SQLParams getWhereParams(Map<String, MethodInfo> getsMap, Where[] wheres) {
+        // 判断where条件是否有效
         if (wheres != null && wheres.length > 0) {
+            // 创建字符串拼接对象
             StringBuilder sb = new StringBuilder();
+            // 参数集合
             List<Object> params = new ArrayList<>();
+            // sql数据类型集合
             List<Integer> sqlTypeList = new ArrayList<>();
+            // where条件数组长度
             int wheresLen = wheres.length;
+            // 当前下标
             int index = 0;
+            // 遍历where条件数组
             while (true) {
                 if (index < wheresLen) {
                     Where where = wheres[index];
                     if (where == null) {
                         return null;
                     }
+                    // 获取字段
                     String column = where.getK();
+                    // 判断字段有效性
                     if (column != null) {
+                        // 修正操作符号，如果是like返回LIKE，其它直接返回比较符号，如：=,>,<>,>=
                         String o = fixOperation(where.getO());
                         if (o == null || o.trim().length() == 0) {
                             return null;
                         }
+                        // 获取值
                         Object v = where.getV();
-                        // 用空白符分割
+                        /*
+                        - \s 匹配任何空白字符，包括空格、制表符、换页符等等。等价于 [ \f\n\r\t\v]
+                        - * 匹配前面的子表达式零次或多次
+                         */
+                        // 该正则表达式要匹配："   ,   "，将where条件的key如：XXX , YYY进行分割
                         String[] keys = column.toUpperCase().split("\\s*,\\s*");
                         if (keys.length > 1) {
                             if (sb.length() == 0) {
@@ -261,8 +305,8 @@ public final class SQLHelper {
                                     if (whereCount > 0) {
                                         sb.append(" OR ");
                                     }
-                                    analyzeWhere(key, o, v, getsMap, sb, params,
-                                            sqlTypeList);
+                                    // 将v(where条件的值分析称SQL语句的值)
+                                    analyzeWhere(key, o, v, getsMap, sb, params, sqlTypeList);
                                     ++whereCount;
                                 }
                             }
@@ -274,8 +318,7 @@ public final class SQLHelper {
                             if (sb.length() > 0) {
                                 sb.append(" AND ");
                             }
-                            if (!analyzeWhere(keys[0], o, v, getsMap, sb, params,
-                                    sqlTypeList)) {
+                            if (!analyzeWhere(keys[0], o, v, getsMap, sb, params, sqlTypeList)) {
                                 return null;
                             }
                         }
@@ -525,7 +568,14 @@ public final class SQLHelper {
     }
     
     /**
-     * 主要转换boolean的类型，将java的boolean类型转为Y或N
+     * 将Java的数据类型转换为数据库类型（主要将Java的boolean类型转换为数据库的char类型，true=Y，false=N）
+     *
+     * @param param      where参数值
+     * @param dbType     数据库类型
+     * @param sqlType    数据库字段类型
+     * @param returnType Java get方法返回值类型
+     *
+     * @return
      */
     private static Object toSQLData(Object param, DatabaseType dbType, int sqlType, Class<?> returnType) {
         TypeMapping mapper = TypeMapping.getMapper(returnType);
@@ -536,36 +586,59 @@ public final class SQLHelper {
         }
     }
     
+    /**
+     * 分析Where条件，将where条件转换为SQL语句的表示方式
+     *
+     * @param column 列字段
+     * @param o      操作符，如：=，>，<，<>等
+     * @param value  where条件值
+     * @param gets   Java Bean对象属性方法（get方法信息）
+     * @param sb     字符串拼接对象
+     * @param params 将Java Bean对象值(value)转换为SQL值后的容器
+     * @param types  value所对应的sql数据类型
+     *
+     * @return
+     */
     private static boolean analyzeWhere(String column, String o, Object value, Map<String, MethodInfo> gets, StringBuilder sb,
             List<Object> params, List<Integer> types) {
+        // 获取该字段对应的get方法，没有属性方法，则不能获取对应数据库中的值
         MethodInfo get = gets.get(column);
-        if (get == null) return false;
-        
-        if (value == null || "null".equals(value)) {
+        // Java Bean类中没有该字段对应的属性方法，则返回空
+        if (get == null) {
+            return false;
+        }
+        // 判断值是不是为空,如果值为空，解析称对应的sql语句
+        if (value == null || "".equals(value.toString().trim()) || "null".equals(value)) {
+            // 值=null，sql语句解析为is null
             if ("=".equals(o)) {
                 sb.append(column);
                 sb.append(" IS NULL");
                 return true;
             }
-            
+            // 值!=null，sql语句解析称is not null
             if ("<>".equals(o)) {
                 sb.append(column);
                 sb.append(" IS NOT NULL");
                 return true;
             }
         }
-        
+        // 获取对应的数据库数据类型
         int type = get.getSqlType();
         Object param;
         if (type == Types.VARCHAR) {
             if (" LIKE ".equals(o)) {
                 // 将column转为大写(upper是数据库里的函数)
                 column = "UPPER(" + column + ")";
+                /*
+                - 数据库的字段是varchar类型，且是like比较符时，like模糊查询不区分大小写
+                - 如果要区分大小写，则使用like binary %xxx%
+                 */
                 param = String.valueOf(value).toUpperCase();
             } else {
                 param = String.valueOf(value);
             }
         } else {
+            // 将Java的参数转为SQL参数，主要将value（boolean类型）转为数据库表示的char类型（Y或N）
             param = toSQLData(value, get.getDbType(), type,
                     get.getMethod().getReturnType());
         }
@@ -580,14 +653,21 @@ public final class SQLHelper {
     
     /**
      * 修正操作符
+     *
+     * @param operator 操作符，如：>,<,=,<>,>=,<=,like
+     *
+     * @return
      */
     private static String fixOperation(String operator) {
+        // 判断操作符的有效性
         if (operator != null && !"".equals(operator.trim())) {
-            if (!operator.equals("=") && !operator.equals("<>") && !operator.equals(
-                    ">") && !operator.equals("<") &&
+            // 判断操作符是否是like
+            if (!operator.equals("=") && !operator.equals("<>") && !operator.equals(">") && !operator.equals("<") &&
                 !operator.equals(">=") && !operator.equals("<=")) {
+                // 返回大写LIKE
                 return operator.trim().toLowerCase().equals("like") ? " LIKE " : null;
             } else {
+                // 返回比较符号
                 return operator;
             }
         } else {

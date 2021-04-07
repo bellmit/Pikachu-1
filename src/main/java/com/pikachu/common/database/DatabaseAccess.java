@@ -8,7 +8,7 @@ import com.pikachu.common.database.pool.PoolManager;
 import com.pikachu.common.database.pool.core.IPool;
 
 /**
- * @Desc
+ * @Desc 数据库访问对象
  * @Date 2019-11-08 17:26
  * @Author AD
  */
@@ -17,11 +17,15 @@ public class DatabaseAccess implements IDatabase {
     private final IDatabase database;
     
     public DatabaseAccess(String poolName) throws Exception {
+        // 获取连接池
         IPool pool = PoolManager.getPool(poolName);
+        // 判断连接池是否有效
         if (pool == null) {
             throw new Exception("连接池名称无效:" + poolName);
         } else {
+            // 获取数据库类型
             DatabaseType type = pool.getDatabaseType();
+            // 根据数据库类型创建不同的数据库访问对象
             switch (type) {
                 case MYSQL:
                     database = new MySQL(pool);

@@ -40,16 +40,16 @@ public class DaoBeanReader<T> implements IDataReader {
             c.setAccessible(true);
             this.data = dataClass.newInstance();
             for (int i = 1; i <= count; ++i) {
-                // 获取字段名
+                // 获取数据库字段名
                 String prop = columns.getColumnName(i);
                 // 转为大写
                 prop = prop.toUpperCase();
-                // 根据属性获取set方法信息
+                // 根据数据库字段名获取Java Bean相应的set方法信息
                 MethodInfo set = sets.get(prop);
                 if (set != null) {
                     // 获取set方法
                     Method method = set.getMethod();
-                    // 获取数据库里的值
+                    // 获取数据库字段值
                     Object param = rs.getObject(i);
                     // 转为Java值
                     Object javaData = SQLHelper.toJavaData(param, set);

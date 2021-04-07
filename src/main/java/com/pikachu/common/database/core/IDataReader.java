@@ -3,7 +3,7 @@ package com.pikachu.common.database.core;
 import java.sql.ResultSet;
 
 /**
- * @Desc 数据读取器工厂
+ * @Desc 数据读取器（策略模式）
  * @Date 2020/11/21 00:03
  * @Author AD
  */

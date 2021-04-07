@@ -19,13 +19,24 @@ public class DataSet {
     public DataSet() {
     }
     
+    /**
+     * 将键-值对都是字符串且转为大写后的列表存入map中
+     * @param nameValues
+     */
     public DataSet(List<NameValue> nameValues) {
         if (!PikachuArrays.isEmpty(nameValues)) {
-            nameValues.stream().forEach(nv -> datas.put(nv.getName().toUpperCase(), nv.getValue()));
+            for (NameValue nv : nameValues) {
+                datas.put(nv.getName().toUpperCase(), nv.getValue());
+            }
         }
         
     }
     
+    /**
+     * 将对象转为大写字符串存入map中
+     * @param name
+     * @param value
+     */
     public void add(Object name, Object value) {
         if (name != null) {
             this.datas.put(name.toString().toUpperCase(), value);

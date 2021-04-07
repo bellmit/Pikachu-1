@@ -6,7 +6,7 @@ import com.pikachu.common.util.PikachuArrays;
 import java.sql.*;
 
 /**
- * @Desc 数据库对象
+ * @Desc 数据库对象，执行JDBC的对象
  * @Date 2020/12/2 21:35
  * @Author AD
  */
@@ -126,6 +126,7 @@ public abstract class Database implements IDatabase {
                     // 判断是否还有key
                     if (rs.next()) {
                         if (PikachuArrays.isEmpty(rows)) {
+                            // 获取列数
                             int count = rs.getMetaData().getColumnCount();
                             result = new Object[count];
                             for (int i = 0; i < count; ++i) {

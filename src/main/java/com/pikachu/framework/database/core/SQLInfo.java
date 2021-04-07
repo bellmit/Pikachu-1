@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @Desc SQL信息
+ * @Desc SQL信息，根据bean类、注解信息创建对应的sql语句
  * @Date 2019-12-05 22:01
  * @Author AD
  */
@@ -118,10 +118,14 @@ public class SQLInfo<T> {
                          PikachuStrings.duplicate("?", ",", columns.size()) + ")";
         // 根据有注解的类,生成根据主键更新和查找的语句：Update语句和Select语句
         StringBuffer sb = new StringBuffer();
+        // 判断表信息有孝心
         if (tableInfo != null && tableInfo.getPrimaryKeys() != null) {
+            // 获取主键数组
             String[] pks = tableInfo.getPrimaryKeys();
+            // 遍历主键字段
             for (String pk : pks) {
                 if (!PikachuStrings.isNull(pk)) {
+                    // 转为大写
                     String PK = pk.toUpperCase();
                     PKList.add(PK);
                     // 在属性字段里，将PK的字段移除
@@ -182,7 +186,9 @@ public class SQLInfo<T> {
                     return null;
                 }
                 MethodInfo info = setMap.get(column.toUpperCase());
-                if (info == null) return null;
+                if (info == null) {
+                    return null;
+                }
                 info.getMethod().invoke(t, values[i]);
             }
             return t;
@@ -245,11 +251,13 @@ public class SQLInfo<T> {
     public SQLParams getRetrieve(Where[] wheres, KeyValue[] orders) {
         // 生成where参数和order参数
         SQLParams where = this.getWhere(wheres);
-        if (where == null) return null;
-        
+        if (where == null) {
+            return null;
+        }
         String orderSQL = getOrderSQL(orders);
-        if (orderSQL == null) return null;
-        
+        if (orderSQL == null) {
+            return null;
+        }
         String whereSQL = where.getSql();
         return new SQLParams(retrieveSQL + whereSQL + orderSQL, where.getParams(),
                 where.getTypes());
@@ -293,18 +301,23 @@ public class SQLInfo<T> {
     public SQLParams getUpdate(KeyValue[] updates, Where[] wheres) {
         // 判断update参数和where参数的有效性
         SQLParams update = SQLHelper.getUpdateParams(methods.getMethodsGetMap(), updates);
-        if (update == null) return null;
-        // update table set（xxx,xxx,xxx）,该updateSql=（xxx,xxx,xxx）
+        if (update == null) {
+            return null;
+        }
+        // update table set xxx=?,yyy=? where zzz=?
+        // 获取更新语句部分：xxx=?,yyy=?
         String updateSql = update.getSql();
         if (PikachuStrings.isNull(updateSql)) {
             return null;
         }
         SQLParams where = this.getWhere(wheres);
-        if (where == null) return null;
-        
+        if (where == null) {
+            return null;
+        }
         String whereSQL = where.getSql();
         Object[] params = PikachuConverts.concat(update.getParams(), where.getParams());
         int[] types = PikachuConverts.concat(update.getTypes(), where.getTypes());
+        // update table set
         return new SQLParams(this.updateSQL + updateSql + whereSQL, params, types);
     }
     

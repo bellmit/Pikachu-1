@@ -31,10 +31,10 @@ public class DaoManager implements IDaoManager {
     
     private boolean isStopped = false;
     
-    private DatabaseType type;
+    private DatabaseType databaseType;
     
-    public DaoManager(String name, DatabaseConfig config) throws Exception {
-        this.name = name;
+    public DaoManager(DatabaseConfig config) throws Exception {
+        this.name = config.getName();
         PoolConfig cfg = new PoolConfig();
         cfg.setPoolName(name);
         cfg.setPoolType(PoolType.getPoolType(config.getPoolType()));
@@ -143,7 +143,7 @@ public class DaoManager implements IDaoManager {
             getter = new PikachuTableInfoGetter<>();
             tableInfo = getter.getTableInfo(clazz);
         }
-        return new SQLInfo<>(clazz, tableInfo, this.type);
+        return new SQLInfo<>(clazz, tableInfo, this.databaseType);
     }
     
     public synchronized void stop() {
