@@ -52,8 +52,7 @@ class HistoryCache<T> {
         if (map.size() >= MAX_COUNT) {
             HistoryData[] datas;
             synchronized (lock) {
-                datas = (HistoryData[]) Array.newInstance(HistoryData.class,
-                                                          map.size());
+                datas = (HistoryData[]) Array.newInstance(HistoryData.class, map.size());
                 datas = map.values().toArray(datas);
             }
             Arrays.sort(datas, new Comparator<HistoryData>() {

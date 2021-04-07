@@ -164,8 +164,8 @@ public class DataCaching<T> extends CacheData<T> {
         return super.getList(SQLHelper.getWheres(props, values), kvs);
     }
 
-    public T[] getPage(int var1, int var2, Where[] wheres, KeyValue[] kvs) throws Exception {
-        return super.getPage(var1, var2, wheres, kvs);
+    public T[] getPage(int page, int var2, Where[] wheres, KeyValue[] kvs) throws Exception {
+        return super.getPage(page, var2, wheres, kvs);
     }
 
     public T[] getPage(int var1, int var2, String[] props, Object[] values, KeyValue[] kvs) throws Exception {

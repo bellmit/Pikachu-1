@@ -43,11 +43,10 @@ public class DaoListReader<T> implements IDataReader {
                     Object sqlValue = rs.getObject(column);
                     Object param = SQLHelper.toJavaData(sqlValue, set);
                     set.getMethod().invoke(data, param);
-                    datas.add(data);
                 }
             }
+            datas.add(data);
         }
-        
         return rows;
     }
     

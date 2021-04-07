@@ -47,21 +47,29 @@ public class DaoPageReader<T> implements IDataReader {
         int rows = 0;
         while (rs.next() && rows < pageSize) {
             ++rows;
+            // 反射创建bean对象
             Constructor<T> c = dataClass.getDeclaredConstructor();
             c.setAccessible(true);
             T data = c.newInstance();
             for (int i = 1; i <= count; ++i) {
+                // 逐列获取数据库字段名
                 String prop = columns.getColumnName(i);
+                // 获取字段名对应的Java bean对象的set属性
                 MethodInfo info = sets.get(prop.toUpperCase());
                 if (info != null) {
+                    // 获取该行该列的数据库值
                     Object sqlValue = rs.getObject(prop);
+                    // 将数据库值转为Java值
                     Object param = SQLHelper.toJavaData(sqlValue, info);
+                    // 调用set方法注入值
                     Method method = info.getMethod();
                     method.invoke(data, param);
-                    datas.add(data);
                 }
             }
+            // 一行读取完毕，存入集合
+            datas.add(data);
         }
+        // 返回读取行数
         return rows;
     }
     
