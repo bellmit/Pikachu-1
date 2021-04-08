@@ -190,7 +190,9 @@ public class Dao<T> extends DatabaseAccess implements IDao<T> {
     @Override
     public T[] getList(Where[] wheres, KeyValue[] orders) throws Exception {
         SQLParams param = sqlInfo.getRetrieve(wheres, orders);
-        if (param == null) return null;
+        if (param == null) {
+            return null;
+        }
         try {
             DaoListReader<T> reader = sqlInfo.getListReader();
             executeReader(reader, param.getSql(), param.getParams(), param.getTypes());

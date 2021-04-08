@@ -19,18 +19,36 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class CacheData<T> {
 
-    private final ReentrantLock writeLock = new ReentrantLock();
-
+    /**
+     * 数据类
+     */
     private final Class<T> dataClass;
 
+    /**
+     * 主键数组
+     */
     private final String[] pks;
 
+    /**
+     * 主键集合
+     */
     private final Set<String> pkSet = new HashSet<>();
 
-    // key:hashCode(pk),value:bean
+    /**
+     * 计算主键值所对应的hash值（将hash值转为字符串）的缓存map
+     * key:hashCode(pk),value:bean
+     */
     private final Map<String, T> dataMap = new LinkedHashMap<>();
 
+    /**
+     * - 根据where条件查询到的数据缓存
+     * - key：where值的hash值，value：根据where条件查询的结果封装成的对象（HistoryData,内部是个数组）
+     */
+    private HistoryCache<T> historyCache = null;
+
     private Dispatcher dispatcher = null;
+
+    private final ReentrantLock writeLock = new ReentrantLock();
 
     private Object eventLock = new Object();
 
@@ -39,8 +57,6 @@ public class CacheData<T> {
     private MethodData methods;
 
     private T[] dataArray;
-
-    private HistoryCache<T> historyCache = null;
 
     /**
      * 缓存数据必须要有主键
@@ -105,12 +121,18 @@ public class CacheData<T> {
         }
     }
 
+    /**
+     * 清楚历史缓存（非主键值的where条件查询结果缓存）
+     */
     void clearHistory() {
         if (this.historyCache != null && this.historyCache.size() != 0) {
             this.historyCache.clear();
         }
     }
 
+    /**
+     * 清除所有缓存，包括主键缓存、非主键缓存
+     */
     void clear() {
         T[] data = this.dataArray;
         this.dataMap.clear();
@@ -123,14 +145,25 @@ public class CacheData<T> {
 
     }
 
+    /**
+     * 将数据存入主键缓存，并清除所有历史缓存（非主键缓存）
+     *
+     * @param data
+     * @throws Exception
+     */
     void put(T data) throws Exception {
         if (data != null) {
+            // 获取where值的hash值字符串
             String pkHashCode = CacheHelper.getPrimaryValueByKeys(methods.getMethodsGetMap(), pks,
                     data);
             if (pkHashCode != null) {
+                // 存入缓存，并返回前一个相同主键值的数据
                 T result = this.dataMap.put(pkHashCode, data);
+                // 判断数据是否已改变
                 if (!this.dataChanged) {
+                    // 变更状态
                     this.dataChanged = true;
+                    // 清除非主键缓存
                     this.clearHistory();
                 }
 
@@ -146,6 +179,12 @@ public class CacheData<T> {
         }
     }
 
+    /**
+     * 将数据全部存入主键缓存，并清除非主键的历史缓存
+     *
+     * @param beans
+     * @throws Exception
+     */
     void putAll(T[] beans) throws Exception {
         for (T bean : beans) {
             if (bean != null) {
@@ -172,22 +211,37 @@ public class CacheData<T> {
 
     }
 
+    /**
+     * 根据where条件进行缓存移除
+     * @param wheres
+     * @throws Exception
+     */
     void remove(Where[] wheres) throws Exception {
         if (this.dataMap.size() != 0) {
             if (wheres != null && wheres.length > 0) {
+                // 将where的key全部转为大写
                 CacheHelper.upperCaseWhereKeys(wheres);
+                // 获取主键值的hash code字符串
                 String pkHashCode = CacheHelper.getPrimaryValueByWheres(this.pks, wheres);
+                // 主键缓存
                 if (pkHashCode != null) {
+                    // 移除数据
                     T data = this.dataMap.remove(pkHashCode);
+                    // 先前的数据不为空且数据未改变
                     if (data != null && !this.dataChanged) {
+                        // 变更状态
                         this.dataChanged = true;
+                        // 清除历史记录
                         this.clearHistory();
                     }
-
+                    // 通知移除
                     if (this.dispatcher != null && data != null) {
                         this.dispatchChanged(CacheEvent.ACTION_REMOVED, data);
                     }
-                } else {
+                }
+                // 非主键缓存
+                else {
+                    // 根据where获取值匹配器
                     ValueMatcher[] matchers = CacheHelper.getWhereMatchers(
                             this.methods.getMethodsGetMap(), wheres);
                     Iterator<Map.Entry<String, T>> it = this.dataMap.entrySet().iterator();
@@ -236,13 +290,16 @@ public class CacheData<T> {
     }
 
     void update(KeyValue[] updates, Where[] wheres) throws Exception {
-        T[] datas = this.getList(wheres, null);
-        if (datas.length != 0) {
+        // 根据where条件获取需要更新的数据
+        T[] needUpdateDatas = this.getList(wheres, null);
+        if (needUpdateDatas.length != 0) {
             ValueUpdater[] updaters = CacheHelper.getUpdaters(this.methods.getMethodsSetMap(),
                     updates);
             boolean containPK = false;
 
+            // 遍历所有的值更新器
             for (ValueUpdater updater : updaters) {
+                // 判断是否有要更新主键值
                 if (this.pkSet.contains(updater.getPropName())) {
                     containPK = true;
                     break;
@@ -250,41 +307,47 @@ public class CacheData<T> {
             }
             // 更新值有包含主键值，通知移除
             if (containPK && this.dispatcher != null) {
-                this.dispatchChanged(CacheEvent.ACTION_REMOVED, datas);
+                this.dispatchChanged(CacheEvent.ACTION_REMOVED, needUpdateDatas);
             }
 
-            for (T data : datas) {
+            // 遍历需要更新的数据
+            for (T data : needUpdateDatas) {
+                // 主键值有更新
                 if (containPK) {
+                    // 移除原来的主键缓存
                     this.dataMap.remove(
                             CacheHelper.getPrimaryValueByKeys(this.methods.getMethodsGetMap(),
                                     this.pks, data));
                 }
 
+                // 反射调用set方法更新所有需要更新的值
                 for (ValueUpdater updater : updaters) {
                     updater.setValue(data);
                 }
 
+                // pk值有更新
                 if (containPK) {
-                    this.dataMap.put(
-                            CacheHelper.getPrimaryValueByKeys(this.methods.getMethodsGetMap(),
-                                    this.pks, data), data);
+                    // 根据对象重新计算主键值的hash code字符串
+                    String pkValue = CacheHelper.getPrimaryValueByKeys(this.methods.getMethodsGetMap(), this.pks, data);
+                    // 存入主键缓存
+                    this.dataMap.put(pkValue, data);
                 }
             }
-
+            // 清除非主键缓存
             this.clearHistory();
             if (this.dispatcher != null) {
                 if (containPK) {
-                    this.dispatchChanged(CacheEvent.ACTION_ADDED, datas);
+                    this.dispatchChanged(CacheEvent.ACTION_ADDED, needUpdateDatas);
                 } else {
-                    this.dispatchChanged(CacheEvent.ACTION_UPDATED, datas);
+                    this.dispatchChanged(CacheEvent.ACTION_UPDATED, needUpdateDatas);
                 }
             }
 
         }
     }
 
-    T getByPrimary(Object[] pks) {
-        return this.dataMap.get(CacheHelper.getPrimaryValueAsString(pks));
+    T getByPrimary(Object[] pkValues) {
+        return this.dataMap.get(CacheHelper.getPrimaryValueAsString(pkValues));
     }
 
     /**
@@ -298,6 +361,7 @@ public class CacheData<T> {
             return null;
         } else if (wheres != null && wheres.length > 0) {
             CacheHelper.upperCaseWhereKeys(wheres);
+            // 获取主键值
             String pkValue = CacheHelper.getPrimaryValueByWheres(this.pks, wheres);
             if (pkValue != null) {
                 return this.dataMap.get(pkValue);
@@ -404,23 +468,39 @@ public class CacheData<T> {
         }
     }
 
-    T[] getList(Where[] wheres, KeyValue[] kvs) throws Exception {
+    /**
+     * 根据where条件和orders排序条件从缓存中获取列表
+     *
+     * @param wheres 查询条件数组
+     * @param orders 排序条件数组
+     * @return
+     * @throws Exception
+     */
+    T[] getList(Where[] wheres, KeyValue[] orders) throws Exception {
         if (this.dataMap.size() == 0) {
             return (T[]) Array.newInstance(this.dataClass, 0);
         } else {
             int historyCacheKey = 0;
             T[] historyDatas;
+            // 存在历史缓存
             if (this.historyCache != null && this.historyCache.size() > 0) {
-                historyCacheKey = CacheHelper.getHistoryCacheKey("list", wheres, kvs);
+                // 计算历史缓存key
+                historyCacheKey = CacheHelper.getHistoryCacheKey("list", wheres, orders);
+                // 获取历史缓存
                 historyDatas = this.historyCache.get(historyCacheKey);
+                // 历史缓存中存在该数据
                 if (historyDatas != null) {
                     return historyDatas;
                 }
             }
 
+            // 不存在历史缓存或历史缓存中不存在该数据
             T[] datas;
+            // 判断where查询条件是否有效
             if (wheres != null && wheres.length != 0) {
+                // 将where查询条件的key转为大写
                 CacheHelper.upperCaseWhereKeys(wheres);
+                // 根据where计算主键值（判断wheres数组是否都是主键，先按照主键查找）
                 String primaryValue = CacheHelper.getPrimaryValueByWheres(this.pks, wheres);
                 if (primaryValue != null) {
                     T data = this.dataMap.get(primaryValue);
@@ -431,13 +511,17 @@ public class CacheData<T> {
                         results[0] = data;
                         return results;
                     }
-                } else {
+                }
+                // 根据主键找不到时，则按照where条件查找
+                else {
                     datas = this.getArrayData();
                     List<T> dataList = new ArrayList<>();
+                    // 根据where条件获取值匹配器
                     ValueMatcher[] valueMatchers = CacheHelper.getWhereMatchers(
                             this.methods.getMethodsGetMap(), wheres);
                     for (int i = 0, L = datas.length; i < L; ++i) {
                         T data = datas[i];
+                        // 匹配命中
                         if (CacheHelper.matchCondition(valueMatchers, data)) {
                             dataList.add(data);
                         }
@@ -445,7 +529,7 @@ public class CacheData<T> {
 
                     datas = (T[]) Array.newInstance(this.dataClass, dataList.size());
                     datas = dataList.toArray(datas);
-                    CacheHelper.sortArray(this.methods.getMethodsGetMap(), kvs, datas);
+                    CacheHelper.sortArray(this.methods.getMethodsGetMap(), orders, datas);
                     if (this.historyCache != null) {
                         this.historyCache.put(historyCacheKey, datas);
                     }
@@ -456,7 +540,7 @@ public class CacheData<T> {
                 historyDatas = this.getArrayData();
                 datas = (T[]) ((T[]) Array.newInstance(this.dataClass, historyDatas.length));
                 System.arraycopy(historyDatas, 0, datas, 0, historyDatas.length);
-                CacheHelper.sortArray(this.methods.getMethodsGetMap(), kvs, datas);
+                CacheHelper.sortArray(this.methods.getMethodsGetMap(), orders, datas);
                 if (this.historyCache != null) {
                     this.historyCache.put(historyCacheKey, datas);
                 }
@@ -475,9 +559,9 @@ public class CacheData<T> {
             pageSize = 1;
         }
 
-        int pageBegin = (page - 1) * pageSize;
+        int start = (page - 1) * pageSize;
         int dataSize = this.dataMap.size();
-        if (pageBegin < dataSize && dataSize != 0) {
+        if (start < dataSize && dataSize != 0) {
             int cacheKey = 0;
             T[] historyDatas;
             if (this.historyCache != null && this.historyCache.size() > 0) {
@@ -508,8 +592,8 @@ public class CacheData<T> {
                     return (T[]) Array.newInstance(this.dataClass, 0);
                 }
 
-                if (pageBegin + pageSize > dataSize) {
-                    pageSize = dataSize - pageBegin;
+                if (start + pageSize > dataSize) {
+                    pageSize = dataSize - start;
                 }
 
                 if (pageSize < 1) {
@@ -519,8 +603,8 @@ public class CacheData<T> {
                 historyDatas = (T[]) Array.newInstance(this.dataClass, dataSize);
                 historyDatas = dataList.toArray(historyDatas);
             } else {
-                if (pageBegin + pageSize > datas.length) {
-                    pageSize = datas.length - pageBegin;
+                if (start + pageSize > datas.length) {
+                    pageSize = datas.length - start;
                 }
 
                 if (pageSize < 1) {
@@ -529,7 +613,7 @@ public class CacheData<T> {
 
                 if (kvs == null || kvs.length == 0) {
                     historyDatas = (T[]) Array.newInstance(this.dataClass, pageSize);
-                    System.arraycopy(datas, pageBegin, historyDatas, 0, pageSize);
+                    System.arraycopy(datas, start, historyDatas, 0, pageSize);
                     if (this.historyCache != null) {
                         this.historyCache.put(cacheKey, historyDatas);
                     }
@@ -543,7 +627,7 @@ public class CacheData<T> {
 
             CacheHelper.sortArray(this.methods.getMethodsGetMap(), kvs, historyDatas);
             T[] resultDatas = (T[]) Array.newInstance(this.dataClass, pageSize);
-            System.arraycopy(historyDatas, pageBegin, resultDatas, 0, pageSize);
+            System.arraycopy(historyDatas, start, resultDatas, 0, pageSize);
             if (this.historyCache != null) {
                 this.historyCache.put(cacheKey, resultDatas);
             }

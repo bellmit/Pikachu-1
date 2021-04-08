@@ -7,7 +7,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * @Desc：
+ * @Desc：历史缓存
  * @Author：AD
  * @Date：2020/1/15 11:18
  */
@@ -19,6 +19,10 @@ class HistoryCache<T> {
 
     private final Object lock = new Object();
 
+    /**
+     * - 存放根据where条件查询到的历史数据
+     * - key：where值的hash值
+     */
     private final Map<Integer, HistoryData<T>> map = new ConcurrentHashMap<>();
 
     HistoryCache() {}

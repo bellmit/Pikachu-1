@@ -20,17 +20,35 @@ import java.util.Map;
  * @Date：2020/1/16 11:26
  */
 public class ValueMatcher {
-    
+
+    /**
+     * 方法数组，对应where条件里的key，key=column1,column2,…
+     */
     private Method[] methods;
+
+    /**
+     * 比较器，对应where里的operator，如：String比较器，int比较器，boolean比较器，char比较器等，内部实现>、<、=、<>、like等的比较
+     */
     private IComparer comparer;
+
+    /**
+     * 参与匹配的值，对应where条件里的value
+     */
     private Object conditionValue;
-    
+
+    /**
+     * where条件值匹配器
+     *
+     * @param methods        Java bean类方法，一般是get方法，可以使用反射机制调用获取值
+     * @param comparer       比较器，如：=、>、<、<>、like比较器
+     * @param conditionValue where条件值，用于和反射调用get方法的结果值进行对比
+     */
     public ValueMatcher(Method[] methods, IComparer comparer, Object conditionValue) {
         this.methods = methods;
         this.comparer = comparer;
         this.conditionValue = conditionValue;
     }
-    
+
     public boolean match(Object o) throws Exception {
         if (methods.length > 1) {
             for (Method method : methods) {
@@ -43,22 +61,26 @@ public class ValueMatcher {
             return comparer.compare(methods[0].invoke(o), conditionValue);
         }
     }
-    
+
     /**
+     * 根据where条件获取值匹配器，一个where对应一个matcher
      * @param gets
      * @param where 操作符、值只能有一个，字段属性可以有多个
-     *
      * @return
-     *
      * @throws Exception
      */
     public static ValueMatcher getValueMatcher(Map<String, MethodInfo> gets, Where where) throws Exception {
         // 获取操作符
         String operator = where.getO();
+        // 判断操作符是否有效
         if (PikachuStrings.isNotNull(operator)) {
             // 获取属性
             String[] props = where.getK().split("\\s*,\\s*");
             Method[] methods;
+            /*
+             - where的key有多个字段，如：xxx,yyy,zzz = vvv
+             - 根据where的key获取get方法
+             */
             if (props.length > 1) {
                 List<Method> methodList = new ArrayList<>();
                 // 根据属性获取对应的方法信息
@@ -108,7 +130,7 @@ public class ValueMatcher {
             return null;
         }
     }
-    
+
     private static Object parseValue(Class<?> returnType, Object value) {
         int type = ClassCode.getType(returnType);
         switch (type) {
@@ -142,8 +164,8 @@ public class ValueMatcher {
                 }
             default:
                 return value;
-            
+
         }
     }
-    
+
 }

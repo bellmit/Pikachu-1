@@ -48,8 +48,7 @@ public final class CacheManager {
     public static void clear() {
         synchronized (cacheLock) {
             CacheData[] cacheDatas = cacheMap.values().toArray(new CacheData[0]);
-            int L = cacheDatas.length;
-            
+
             for (CacheData data : cacheDatas) {
                 data.lock();
                 data.clear();
