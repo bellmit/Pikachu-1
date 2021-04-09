@@ -186,7 +186,8 @@ public final class SQLHelper {
                     // 是boolean类型，判断是Y或N（数据库使用Y或N表示boolean类型）
                     return dbValue != null && "Y".equals(dbValue.toString());
                 }
-                //    string
+             // string
+            case Types.CLOB:
             case Types.VARCHAR:
                 return dbValue == null ? null : dbValue.toString();
             //    bigDecimal
@@ -269,7 +270,6 @@ public final class SQLHelper {
                 }
                 return dbValue;
             case Types.BLOB:
-            case Types.CLOB:
             default:
                 return dbValue;
         }
