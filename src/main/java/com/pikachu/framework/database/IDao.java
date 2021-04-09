@@ -10,6 +10,7 @@ import com.pikachu.common.collection.Where;
  * @Author AD
  */
 public interface IDao<T> {
+
     String[] getPrimaryKeys();
 
     void refreshCache();
@@ -58,6 +59,14 @@ public interface IDao<T> {
 
     int getCount(String[] columns, Object[] values) throws Exception;
 
+    /**
+     * 获取列表，当wheres为空时表示获取全部
+     *
+     * @param wheres
+     * @param orders
+     * @return
+     * @throws Exception
+     */
     T[] getList(Where[] wheres, KeyValue[] orders) throws Exception;
 
     T[] getList(String[] columns, Object[] values, KeyValue[] orders) throws Exception;
@@ -69,4 +78,5 @@ public interface IDao<T> {
     int update(KeyValue[] updates, Where[] wheres) throws Exception;
 
     int update(String[] updateColumns, Object[] updateValues, String[] whereColumns, Object[] whereValues) throws Exception;
+
 }
