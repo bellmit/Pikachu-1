@@ -30,10 +30,11 @@ public class PikachuApp {
             IDao<Pikachu> pikachuDao = daoManager.getDao(Pikachu.class);
 
             Pikachu p = pikachuDao.add(new Pikachu());
-            Pikachu pk = pikachuDao.getByPrimary(p.getId());
+            Pikachu[] list = pikachuDao.getList(null, null);
 
-            System.out.println(p);
-            System.out.println(pk);
+            for (Pikachu pikachu : list) {
+                System.out.println(pikachu);
+            }
 
 
         } catch (Exception e) {
@@ -44,7 +45,7 @@ public class PikachuApp {
         }
     }
 
-    @ITable(doc = "测试表", cache = true, history = true, table = "pikachu")
+    @ITable(doc = "测试表", cache = true, history = true)
     public static class Pikachu implements Serializable {
 
         @IColumn(doc = "主键", pk = true)
