@@ -27,7 +27,12 @@ enum TypeMapping {
     BIG_DECIMAL(Types.NUMERIC, BigDecimal.class),
     BYTES(Types.BLOB, byte[].class),
     STRING(Types.VARCHAR, String.class),
-    DATE(Types.TIMESTAMP, Date.class, LocalDateTime.class, LocalDate.class, LocalTime.class);
+
+    TIME(Types.TIME,LocalTime.class),
+    DATE(Types.DATE,LocalDate.class),
+
+    TIMESTAMP(Types.TIMESTAMP, Date.class, LocalDateTime.class);
+
 
     private static final Map<Class<?>, Integer> TYPES = new HashMap<>();
     private static final Map<Class<?>, TypeMapping> MAPPERS = new HashMap<>();

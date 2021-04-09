@@ -431,7 +431,7 @@ public class CacheData<T> {
         if (wheres != null && wheres.length > 0 && size != 0) {
             int historyCacheKey = 0;
             if (this.historyCache != null && this.historyCache.size() > 0) {
-                historyCacheKey = CacheHelper.getHistoryCacheKey("list", wheres, (KeyValue[]) null);
+                historyCacheKey = CacheHelper.getHistoryCacheKey("list", wheres, null);
                 T[] datas = this.historyCache.get(historyCacheKey);
                 if (datas != null) {
                     return datas.length;

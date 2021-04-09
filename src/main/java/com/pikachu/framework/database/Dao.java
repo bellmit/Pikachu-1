@@ -46,7 +46,9 @@ public class Dao<T> extends DatabaseAccess implements IDao<T> {
     @Override
     public T add(T bean) throws Exception {
         SQLParams param = sqlInfo.getCreate(bean);
-        if (param == null) return null;
+        if (param == null) {
+            return null;
+        }
 
         try {
             return execute(param.getSql(), param.getParams(),
@@ -88,7 +90,9 @@ public class Dao<T> extends DatabaseAccess implements IDao<T> {
     @Override
     public T put(T bean) throws Exception {
         SQLParams param = sqlInfo.getCountByPrimary(bean);
-        if (param == null) return null;
+        if (param == null) {
+            return null;
+        }
 
         DaoCountReader reader = new DaoCountReader();
         executeReader(reader, param.getSql(), param.getParams(), param.getTypes());

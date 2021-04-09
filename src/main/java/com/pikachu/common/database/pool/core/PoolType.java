@@ -15,6 +15,6 @@ public enum PoolType {
                 return type;
             }
         }
-        return null;
+        return HIKARI;
     }
 }

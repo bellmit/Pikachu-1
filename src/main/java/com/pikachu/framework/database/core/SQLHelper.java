@@ -242,6 +242,10 @@ public final class SQLHelper {
                     return date;
                 }
                 return dbValue;
+            case Types.DATE:
+                return null;
+            case Types.TIME:
+                return null;
             case Types.BLOB:
                 return null;
             case Types.CLOB:

@@ -20,55 +20,57 @@ import java.util.concurrent.ConcurrentHashMap;
  * @Date：2020/1/19 17:56
  */
 public class DaoManager implements IDaoManager {
-    
+
     private final Map<Class<?>, IDao<?>> daosMap = new ConcurrentHashMap<>();
-    
+
     private final Object daosLock = new Object();
-    
+
     private final String name;
-    
+
     // private IProtocol protocol;
-    
+
     private boolean isStopped = false;
-    
+
     private DatabaseType databaseType;
-    
+
     public DaoManager(DatabaseConfig config) throws Exception {
         this.name = config.getName();
-        PoolConfig cfg = new PoolConfig();
-        cfg.setPoolName(name);
-        cfg.setPoolType(PoolType.getPoolType(config.getPoolType()));
-        cfg.setUrl(config.getUrl());
-        cfg.setDriver(config.getDriver());
-        cfg.setUser(config.getUser());
-        cfg.setPassword(config.getPassword());
-        cfg.setInitialSize(PikachuConverts.toInt(config.getInitialSize(), cfg.getInitialSize()));
-        cfg.setMaxActive(PikachuConverts.toInt(config.getMaxActive(), cfg.getMaxActive()));
-        cfg.setMaxWait(PikachuConverts.toLong(config.getMaxWait(), cfg.getMaxWait()));
-        cfg.setMinEvictableIdleTimeMillis(PikachuConverts.toLong(config.getMinEvictableIdleTimeMillis(),
-                cfg.getMinEvictableIdleTimeMillis()));
-        cfg.setMinIdle(PikachuConverts.toInt(config.getMinIdle(), cfg.getMinIdle()));
-        cfg.setTestOnBorrow(PikachuConverts.toBoolean(config.getTestOnBorrow(), cfg.isTestOnBorrow()));
-        cfg.setTestOnReturn(PikachuConverts.toBoolean(config.getTestOnReturn(), cfg.isTestOnReturn()));
-        cfg.setTestWhileIdle(PikachuConverts.toBoolean(config.getTestWhileIdle(), cfg.isTestWhileIdle()));
-        cfg.setTimeBetweenEvictionRunsMillis(
+        this.databaseType = DatabaseType.MYSQL;
+        PoolConfig defaultConfig = new PoolConfig();
+        defaultConfig.setPoolName(name);
+        defaultConfig.setDatabaseType(this.databaseType);
+        defaultConfig.setPoolType(PoolType.getPoolType(config.getPoolType()));
+        defaultConfig.setUrl(config.getUrl());
+        defaultConfig.setDriver(config.getDriver());
+        defaultConfig.setUser(config.getUser());
+        defaultConfig.setPassword(config.getPassword());
+        defaultConfig.setInitialSize(PikachuConverts.toInt(config.getInitialSize(), defaultConfig.getInitialSize()));
+        defaultConfig.setMaxActive(PikachuConverts.toInt(config.getMaxActive(), defaultConfig.getMaxActive()));
+        defaultConfig.setMaxWait(PikachuConverts.toLong(config.getMaxWait(), defaultConfig.getMaxWait()));
+        defaultConfig.setMinEvictableIdleTimeMillis(PikachuConverts.toLong(config.getMinEvictableIdleTimeMillis(),
+                defaultConfig.getMinEvictableIdleTimeMillis()));
+        defaultConfig.setMinIdle(PikachuConverts.toInt(config.getMinIdle(), defaultConfig.getMinIdle()));
+        defaultConfig.setTestOnBorrow(PikachuConverts.toBoolean(config.getTestOnBorrow(), defaultConfig.isTestOnBorrow()));
+        defaultConfig.setTestOnReturn(PikachuConverts.toBoolean(config.getTestOnReturn(), defaultConfig.isTestOnReturn()));
+        defaultConfig.setTestWhileIdle(PikachuConverts.toBoolean(config.getTestWhileIdle(), defaultConfig.isTestWhileIdle()));
+        defaultConfig.setTimeBetweenEvictionRunsMillis(
                 PikachuConverts.toLong(config.getTimeBetweenEvictionRunsMillis(),
-                        cfg.getTimeBetweenEvictionRunsMillis()));
-        cfg.setValidationQuery(config.getValidateQuery());
-        
+                        defaultConfig.getTimeBetweenEvictionRunsMillis()));
+        defaultConfig.setValidationQuery(config.getValidateQuery());
+
         try {
-            IPool pool = PoolManager.start(cfg);
+            IPool pool = PoolManager.start(defaultConfig);
         } catch (Exception e) {
             // Logs.get(name).error(Locals.text("framework.db.start.err", name));
             e.printStackTrace();
             throw e;
         }
     }
-    
+
     // public void setProtocol(IProtocol protocol) {
     //     this.protocol = protocol;
     // }
-    
+
     public IDatabase getDatabaseAccess() {
         try {
             return new DatabaseAccess(this.name);
@@ -77,11 +79,11 @@ public class DaoManager implements IDaoManager {
             return null;
         }
     }
-    
+
     public <T> IDao<T> getDao(Class<T> clazz) {
         return this.getDao(clazz, null);
     }
-    
+
     public <T> IDao<T> getDao(Class<T> clazz, ITableInfoGetter<T> getter) {
         if (this.isStopped) {
             return null;
@@ -93,9 +95,9 @@ public class DaoManager implements IDaoManager {
                     if (dao != null) {
                         return dao;
                     }
-                    
+
                     SQLInfo<T> info = this.getDaoMethods(clazz, getter);
-                    
+
                     try {
                         if (info.isCaching()) {
                             // if (protocol == null) {
@@ -112,7 +114,7 @@ public class DaoManager implements IDaoManager {
                             // }
                             dao = new Dao<>(this.name, info);
                         }
-                        
+
                         this.daosMap.put(clazz, dao);
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -122,7 +124,7 @@ public class DaoManager implements IDaoManager {
             return dao;
         }
     }
-    
+
     private <T> SQLInfo<T> getDaoMethods(Class<T> clazz, ITableInfoGetter<T> getter) {
         // if (getter == null) {
         //     getter = new ITableInfoGetter<T>() {
@@ -137,7 +139,11 @@ public class DaoManager implements IDaoManager {
         //         }
         //     };
         // }
-        
+
+        if (getter == null) {
+            getter = new PikachuTableInfoGetter<>();
+        }
+
         TableInfo tableInfo = getter.getTableInfo(clazz);
         if (tableInfo == null) {
             getter = new PikachuTableInfoGetter<>();
@@ -145,11 +151,11 @@ public class DaoManager implements IDaoManager {
         }
         return new SQLInfo<>(clazz, tableInfo, this.databaseType);
     }
-    
+
     public synchronized void stop() {
         if (!this.isStopped) {
             this.isStopped = true;
-            
+
             try {
                 PoolManager.stop(this.name);
             } catch (Exception e) {
@@ -158,5 +164,5 @@ public class DaoManager implements IDaoManager {
             CacheManager.clear();
         }
     }
-    
+
 }
