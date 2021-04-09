@@ -24,7 +24,7 @@ enum TypeMapping {
     FLOAT(Types.FLOAT, float.class, Float.class),
     DOUBLE(Types.DOUBLE, double.class, Double.class),
 
-    BIG_DECIMAL(Types.NUMERIC, BigDecimal.class),
+    BIG_DECIMAL(Types.DECIMAL, BigDecimal.class),
     BYTES(Types.BLOB, byte[].class),
     STRING(Types.VARCHAR, String.class),
 
