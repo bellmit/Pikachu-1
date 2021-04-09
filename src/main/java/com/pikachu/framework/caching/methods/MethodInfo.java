@@ -16,7 +16,7 @@ public final class MethodInfo {
     // 属性大写，即映射表的字段名（去掉get或set后的属性名大写）
     private final String key;
 
-    // 属性名(setXXX,去掉get或set之后的名字)
+    // 属性名(setXXX,去掉get或set之后的名字，区分大小写)
     private final String propName;
 
     // 方法对象
