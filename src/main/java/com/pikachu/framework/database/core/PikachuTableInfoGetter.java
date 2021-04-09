@@ -27,6 +27,8 @@ public class PikachuTableInfoGetter<T> implements ITableInfoGetter<T> {
         Field[] fields = clazz.getDeclaredFields();
         List<String> pks = new ArrayList<>();
         for (Field field : fields) {
+            boolean accessible = field.isAccessible();
+            field.setAccessible(true);
             if (field.isAnnotationPresent(IColumn.class)) {
                 IColumn column = field.getAnnotation(IColumn.class);
                 if (column.pk()) {
@@ -34,6 +36,7 @@ public class PikachuTableInfoGetter<T> implements ITableInfoGetter<T> {
                     pks.add(pk);
                 }
             }
+            field.setAccessible(accessible);
         }
         return new TableInfo(tableName, pks.toArray(PikachuArrays.EMPTY_STRING), cache, history);
     }

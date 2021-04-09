@@ -190,39 +190,22 @@ public final class SQLHelper {
             case Types.VARCHAR:
                 return dbValue == null ? null : dbValue.toString();
             //    bigDecimal
-            case Types.NUMERIC:
+            case Types.DECIMAL:
                 return PikachuConverts.toBigDecimal(dbValue);
-            //    timestamp
-            case Types.TIMESTAMP:
+            case Types.DATE:
                 Date date = null;
-                if (dbValue == null) {
-                    return null;
-                } else if (dbValue instanceof java.sql.Date) {
+                if (dbValue instanceof java.sql.Date) {
                     java.sql.Date sqlDate = (java.sql.Date) dbValue;
                     date = new Date(sqlDate.getTime());
-                } else if (dbValue instanceof Timestamp) {
-                    Timestamp timestamp = (Timestamp) dbValue;
-                    date = new Date(timestamp.getTime());
-                } else if (dbValue instanceof Time) {
-                    Time time = (Time) dbValue;
-                    date = new Date(time.getTime());
                 }
                 if (date != null) {
                     // 获取Java Bean类set方法的参数类型数组
                     Class<?>[] paramTypes = set.getMethod().getParameterTypes();
                     // 判断参数是否有效
-                    if (paramTypes != null && paramTypes.length > 0) {
+                    if (paramTypes.length > 0) {
                         // 获取第一个参数
                         Class<?> param = paramTypes[0];
                         // LocalDateTime类型
-                        if (LocalDateTime.class.equals(param)) {
-                            try {
-                                return PikachuConverts.toLocalDateTime(date);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        }
-                        // LocalDate类型
                         if (LocalDate.class.equals(param)) {
                             try {
                                 return PikachuConverts.toLocalDateTime(date).toLocalDate();
@@ -230,26 +213,63 @@ public final class SQLHelper {
                                 e.printStackTrace();
                             }
                         }
-                        // LocalTime类型
+                    }
+                }
+                return null;
+            case Types.TIME:
+                Date time = null;
+                if (dbValue instanceof java.sql.Time) {
+                    java.sql.Time sqlTime = (java.sql.Time) dbValue;
+                    time = new Date(sqlTime.getTime());
+                }
+                if (time != null) {
+                    // 获取Java Bean类set方法的参数类型数组
+                    Class<?>[] paramTypes = set.getMethod().getParameterTypes();
+                    // 判断参数是否有效
+                    if (paramTypes.length > 0) {
+                        // 获取第一个参数
+                        Class<?> param = paramTypes[0];
+                        // LocalDateTime类型
                         if (LocalTime.class.equals(param)) {
                             try {
-                                return PikachuConverts.toLocalDateTime(date).toLocalTime();
+                                return PikachuConverts.toLocalDateTime(time).toLocalTime();
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
                         }
                     }
-                    return date;
+                }
+                return null;
+            //    timestamp
+            case Types.TIMESTAMP:
+                Date dateTime = null;
+                if (dbValue == null) {
+                    return null;
+                } else if (dbValue instanceof Timestamp) {
+                    Timestamp timestamp = (Timestamp) dbValue;
+                    dateTime = new Date(timestamp.getTime());
+                }
+                if (dateTime != null) {
+                    // 获取Java Bean类set方法的参数类型数组
+                    Class<?>[] paramTypes = set.getMethod().getParameterTypes();
+                    // 判断参数是否有效
+                    if (paramTypes.length > 0) {
+                        // 获取第一个参数
+                        Class<?> param = paramTypes[0];
+                        // LocalDateTime类型
+                        if (LocalDateTime.class.equals(param)) {
+                            try {
+                                return PikachuConverts.toLocalDateTime(dateTime);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                    return dateTime;
                 }
                 return dbValue;
-            case Types.DATE:
-                return null;
-            case Types.TIME:
-                return null;
             case Types.BLOB:
-                return null;
             case Types.CLOB:
-                return null;
             default:
                 return dbValue;
         }
