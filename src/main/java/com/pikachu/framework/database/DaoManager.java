@@ -35,7 +35,7 @@ public class DaoManager implements IDaoManager {
 
     public DaoManager(DatabaseConfig config) throws Exception {
         this.name = config.getName();
-        this.databaseType = DatabaseType.MYSQL;
+        this.databaseType = DatabaseType.get(config.getUrl());
         PoolConfig defaultConfig = new PoolConfig();
         defaultConfig.setPoolName(name);
         defaultConfig.setDatabaseType(this.databaseType);
