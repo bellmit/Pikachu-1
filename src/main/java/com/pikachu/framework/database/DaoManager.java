@@ -39,7 +39,8 @@ public class DaoManager implements IDaoManager {
         PoolConfig defaultConfig = new PoolConfig();
         defaultConfig.setPoolName(name);
         defaultConfig.setDatabaseType(this.databaseType);
-        defaultConfig.setPoolType(PoolType.getPoolType(config.getPoolType()));
+        PoolType poolType = PoolType.getPoolType(config.getPoolType());
+        defaultConfig.setPoolType(poolType);
         defaultConfig.setUrl(config.getUrl());
         defaultConfig.setDriver(config.getDriver());
         defaultConfig.setUser(config.getUser());

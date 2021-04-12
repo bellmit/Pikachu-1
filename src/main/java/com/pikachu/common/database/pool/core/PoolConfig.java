@@ -124,7 +124,7 @@ public class PoolConfig {
      * 设置 连接池类型
      */
     public void setPoolType(PoolType type) {
-        this.poolType = poolType;
+        this.poolType = type;
     }
     
     /**

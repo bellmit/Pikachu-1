@@ -6,15 +6,17 @@ import com.pikachu.framework.caching.methods.MethodInfo;
 import com.pikachu.common.collection.KeyValue;
 import com.pikachu.common.collection.Where;
 import com.pikachu.common.database.core.DatabaseType;
+import oracle.sql.BLOB;
+import oracle.sql.TIMESTAMP;
 
+import java.awt.image.DataBufferByte;
 import java.lang.reflect.Method;
-import java.sql.Time;
-import java.sql.Timestamp;
-import java.sql.Types;
+import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.Date;
 
 /**
  * @Desc SQL工具类
@@ -115,7 +117,7 @@ public final class SQLHelper {
             int sqlType = get.getSqlType();
 
             try {
-                // 获取bean所对应字段的参数
+                // 获取bean所对应字段的值
                 Object param = get.getMethod().invoke(bean);
                 // 获取字段（大写）
                 String column = get.getKey();
@@ -186,11 +188,23 @@ public final class SQLHelper {
                     // 是boolean类型，判断是Y或N（数据库使用Y或N表示boolean类型）
                     return dbValue != null && "Y".equals(dbValue.toString());
                 }
-             // string
-            case Types.CLOB:
             case Types.VARCHAR:
-                return dbValue == null ? null : dbValue.toString();
-            //    bigDecimal
+                if (dbValue == null) {
+                    return null;
+                } else {
+                    if (dbValue instanceof String) {
+                        return dbValue.toString();
+                    } else {
+                        Clob clob = (Clob) dbValue;
+                        try {
+                            String sub = clob.getSubString(1, (int) clob.length());
+                            return sub;
+                        } catch (SQLException throwables) {
+                            throwables.printStackTrace();
+                        }
+                    }
+                }
+                //    bigDecimal
             case Types.DECIMAL:
                 return PikachuConverts.toBigDecimal(dbValue);
             case Types.DATE:
@@ -198,6 +212,10 @@ public final class SQLHelper {
                 if (dbValue instanceof java.sql.Date) {
                     java.sql.Date sqlDate = (java.sql.Date) dbValue;
                     date = new Date(sqlDate.getTime());
+                }
+                if (dbValue instanceof Timestamp) {
+                    Timestamp timestamp = (Timestamp) dbValue;
+                    date = new Date(timestamp.getTime());
                 }
                 if (date != null) {
                     // 获取Java Bean类set方法的参数类型数组
@@ -223,6 +241,10 @@ public final class SQLHelper {
                     java.sql.Time sqlTime = (java.sql.Time) dbValue;
                     time = new Date(sqlTime.getTime());
                 }
+                if (dbValue instanceof Timestamp) {
+                    Timestamp timestamp = (Timestamp) dbValue;
+                    time = new Date(timestamp.getTime());
+                }
                 if (time != null) {
                     // 获取Java Bean类set方法的参数类型数组
                     Class<?>[] paramTypes = set.getMethod().getParameterTypes();
@@ -244,11 +266,20 @@ public final class SQLHelper {
             //    timestamp
             case Types.TIMESTAMP:
                 Date dateTime = null;
-                if (dbValue == null) {
-                    return null;
-                } else if (dbValue instanceof Timestamp) {
+                // MySQL
+                if (dbValue instanceof Timestamp) {
                     Timestamp timestamp = (Timestamp) dbValue;
                     dateTime = new Date(timestamp.getTime());
+                }
+                // Oracle
+                else if (dbValue instanceof TIMESTAMP) {
+                    TIMESTAMP timestamp = (TIMESTAMP) dbValue;
+                    try {
+                        LocalDateTime localDateTime = timestamp.toLocalDateTime();
+                        dateTime = PikachuConverts.toDate(localDateTime);
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
                 }
                 if (dateTime != null) {
                     // 获取Java Bean类set方法的参数类型数组
@@ -270,6 +301,18 @@ public final class SQLHelper {
                 }
                 return dbValue;
             case Types.BLOB:
+                // MySQL
+                if (dbValue instanceof byte[]) {
+                    return (byte[]) dbValue;
+                }
+                // Oracle
+                Blob blob = (Blob) dbValue;
+                try {
+                    byte[] bytes = blob.getBytes(1, (int) blob.length());
+                    return bytes;
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
             default:
                 return dbValue;
         }
