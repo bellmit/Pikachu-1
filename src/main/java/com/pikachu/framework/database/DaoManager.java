@@ -144,12 +144,7 @@ public class DaoManager implements IDaoManager {
         if (getter == null) {
             getter = new PikachuTableInfoGetter<>();
         }
-
         TableInfo tableInfo = getter.getTableInfo(clazz);
-        if (tableInfo == null) {
-            getter = new PikachuTableInfoGetter<>();
-            tableInfo = getter.getTableInfo(clazz);
-        }
         return new SQLInfo<>(clazz, tableInfo, this.databaseType);
     }
 
