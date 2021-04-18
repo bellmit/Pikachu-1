@@ -2,6 +2,7 @@ package com.pikachu;
 
 import com.pikachu.common.annotations.IColumn;
 import com.pikachu.common.annotations.ITable;
+import com.pikachu.common.collection.Where;
 import com.pikachu.common.database.pool.core.PoolType;
 import com.pikachu.framework.database.DaoManager;
 import com.pikachu.framework.database.IDao;
@@ -41,13 +42,22 @@ public class PikachuApp {
         try {
             DaoManager daoManager = new DaoManager(c);
             IDao<Pikachu> dao = daoManager.getDao(Pikachu.class);
-            //for (int i = 0; i < 5; i++) {
-            //    dao.add(new Pikachu());
-            //}
             Pikachu[] ps = dao.getList(null, null);
             for (Pikachu p : ps) {
                 System.out.println(p);
             }
+            Where w = new Where();
+            w.setK("name");
+            w.setO("=");
+            w.setV("AD");
+    
+            Where where = new Where();
+            where.setK("age");
+            where.setO("=");
+            where.setV("2");
+            int delete = dao.delete(new Where[]{w, where});
+            System.out.println(ps.length);
+            System.out.println(delete);
         } catch (Exception e) {
             e.printStackTrace();
         }

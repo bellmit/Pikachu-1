@@ -12,6 +12,8 @@ import com.pikachu.common.collection.Where;
 public interface IDao<T> {
 
     String[] getPrimaryKeys();
+    
+    String getTableName();
 
     void refreshCache();
 

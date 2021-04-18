@@ -25,6 +25,8 @@ import java.util.Map;
  */
 public class SQLInfo<T> {
     
+    // 数据库表名
+    private String tableName;
     // 创建语句
     private String createSQL;
     // 删除语句
@@ -88,7 +90,7 @@ public class SQLInfo<T> {
             }
         }
         // 表名转换为大写
-        tableName = tableName.toUpperCase();
+        this.tableName = tableName.toUpperCase();
         // 数据库类型
         this.dbType = dbType;
         // bean数据类型
@@ -372,6 +374,10 @@ public class SQLInfo<T> {
     
     public String[] getPrimaryKeys() {
         return this.primaryKeys;
+    }
+    
+    public String getTableName(){
+        return this.tableName;
     }
     
     public SQLParams getWhere(Where[] wheres) {

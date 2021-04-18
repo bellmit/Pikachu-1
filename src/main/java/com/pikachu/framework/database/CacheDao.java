@@ -59,6 +59,11 @@ public class CacheDao<T> implements IDao<T> {
     }
     
     @Override
+    public String getTableName() {
+        return sqlInfo.getTableName();
+    }
+    
+    @Override
     public void refreshCache() {
         CacheData<T> cacheData = CacheManager.lock(dataClass);
         

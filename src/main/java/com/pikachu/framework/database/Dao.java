@@ -42,7 +42,12 @@ public class Dao<T> extends DatabaseAccess implements IDao<T> {
     public String[] getPrimaryKeys() {
         return sqlInfo.getPrimaryKeys();
     }
-
+    
+    @Override
+    public String getTableName() {
+        return sqlInfo.getTableName();
+    }
+    
     @Override
     public T add(T bean) throws Exception {
         SQLParams param = sqlInfo.getCreate(bean);

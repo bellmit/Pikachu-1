@@ -1,22 +1,20 @@
 package com.pikachu.framework.database.core;
 
-import com.pikachu.common.util.PikachuConverts;
-import com.pikachu.common.util.PikachuStrings;
-import com.pikachu.framework.caching.methods.MethodInfo;
 import com.pikachu.common.collection.KeyValue;
 import com.pikachu.common.collection.Where;
 import com.pikachu.common.database.core.DatabaseType;
-import oracle.sql.BLOB;
+import com.pikachu.common.util.PikachuConverts;
+import com.pikachu.common.util.PikachuStrings;
+import com.pikachu.framework.caching.methods.MethodInfo;
 import oracle.sql.TIMESTAMP;
 
-import java.awt.image.DataBufferByte;
 import java.lang.reflect.Method;
 import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.*;
 import java.util.Date;
+import java.util.*;
 
 /**
  * @Desc SQL工具类
@@ -729,7 +727,7 @@ public final class SQLHelper {
             if (!operator.equals("=") && !operator.equals("<>") && !operator.equals(">") && !operator.equals("<") &&
                     !operator.equals(">=") && !operator.equals("<=")) {
                 // 返回大写LIKE
-                return operator.trim().toLowerCase().equals("like") ? " LIKE " : null;
+                return operator.trim().toLowerCase().equals("like") ? " LIKE " : operator;
             } else {
                 // 返回比较符号
                 return operator;
