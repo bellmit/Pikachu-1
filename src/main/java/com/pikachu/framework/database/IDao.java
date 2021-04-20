@@ -13,6 +13,8 @@ public interface IDao<T> {
 
     String[] getPrimaryKeys();
     
+    Object[] getPrimaryKeysValue(T t);
+    
     String getTableName();
 
     void refreshCache();

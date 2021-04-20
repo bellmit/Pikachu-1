@@ -13,9 +13,9 @@ import com.pikachu.common.database.pool.core.IPool;
  * @Author AD
  */
 public class DatabaseAccess implements IDatabase {
-
+    
     private final IDatabase database;
-
+    
     public DatabaseAccess(String poolName) throws Exception {
         // 获取连接池
         IPool pool = PoolManager.getPool(poolName);
@@ -42,34 +42,34 @@ public class DatabaseAccess implements IDatabase {
                 default:
                     database = new Others(pool);
             }
-
+            
         }
     }
-
+    
     @Override
     public int execute(String sql, Object[] params, int[] sqlTypes) throws Exception {
         return database.execute(sql, params, sqlTypes);
     }
-
+    
     @Override
-    public int[] executeBatch(String[] sqls) throws Exception {
-        return database.executeBatch(sqls);
+    public int[] executeBatch(String[] sqls, Object[][] params, int[][] sqlTypes) throws Exception {
+        return database.executeBatch(sqls, params, sqlTypes);
     }
-
+    
     @Override
     public int executeReader(IDataReader reader, String sql, Object[] params, int[] sqlTypes) throws Exception {
         return database.executeReader(reader, sql, params, sqlTypes);
     }
-
+    
     @Override
     public int executeReader(IDataReader reader, String table, Object[] args, int[] sqlTypes, int start, int rows)
             throws Exception {
         return database.executeReader(reader, table, args, sqlTypes, start, rows);
     }
-
+    
     @Override
     public Object[] executeReturnGeneratedKeys(String sql, Object[] params, int[] sqlTypes, String[] rows) throws Exception {
         return database.executeReturnGeneratedKeys(sql, params, sqlTypes, rows);
     }
-
+    
 }

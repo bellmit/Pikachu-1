@@ -17,9 +17,7 @@ import com.pikachu.common.collection.Where;
 public class CacheDao<T> implements IDao<T> {
     
     private Class<T> dataClass;
-    
     private SQLInfo<T> sqlInfo;
-    
     private Dao<T> dao;
     
     CacheDao(String name, SQLInfo<T> sqlInfo) throws Exception {
@@ -56,6 +54,11 @@ public class CacheDao<T> implements IDao<T> {
     @Override
     public String[] getPrimaryKeys() {
         return sqlInfo.getPrimaryKeys();
+    }
+    
+    @Override
+    public Object[] getPrimaryKeysValue(T t) {
+        return sqlInfo.getPrimaryKeysValue(t);
     }
     
     @Override
@@ -346,7 +349,7 @@ public class CacheDao<T> implements IDao<T> {
     public int update(String[] updateColumns, Object[] updateValues, String[] whereColumns, Object[] whereValues)
             throws Exception {
         return this.update(SQLHelper.getUpdates(updateColumns, updateValues),
-                           SQLHelper.getWheres(whereColumns, whereValues));
+                SQLHelper.getWheres(whereColumns, whereValues));
     }
     
 }

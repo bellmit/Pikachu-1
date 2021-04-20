@@ -27,7 +27,7 @@ public interface IDatabase {
      *
      * @throws Exception
      */
-    int[] executeBatch(String[] sqls) throws Exception;
+    int[] executeBatch(String[] sqls, Object[][] params, int[][] sqlTypes) throws Exception;
     
     /**
      * 使用数据读取器读取数据

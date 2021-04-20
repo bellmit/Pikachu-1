@@ -1,5 +1,9 @@
 package com.pikachu.framework.database.core;
 
+import com.pikachu.common.collection.KeyValue;
+import com.pikachu.common.collection.Where;
+import com.pikachu.common.database.core.DatabaseType;
+import com.pikachu.common.util.PikachuArrays;
 import com.pikachu.common.util.PikachuConverts;
 import com.pikachu.common.util.PikachuStrings;
 import com.pikachu.framework.caching.methods.MethodData;
@@ -8,10 +12,6 @@ import com.pikachu.framework.caching.methods.MethodManager;
 import com.pikachu.framework.database.reader.DaoBeanReader;
 import com.pikachu.framework.database.reader.DaoListReader;
 import com.pikachu.framework.database.reader.DaoPageReader;
-import com.pikachu.common.collection.KeyValue;
-import com.pikachu.common.collection.Where;
-import com.pikachu.common.database.core.DatabaseType;
-import com.pikachu.common.util.PikachuArrays;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -374,6 +374,23 @@ public class SQLInfo<T> {
     
     public String[] getPrimaryKeys() {
         return this.primaryKeys;
+    }
+    
+    public Object[] getPrimaryKeysValue(T t){
+        String[] PKs = getPrimaryKeys();
+        Map<String, MethodInfo> methodsGetMap = methods.getMethodsGetMap();
+        Object[] values = new Object[PKs.length];
+        for (int i = 0; i < PKs.length; i++) {
+            MethodInfo methodInfo = methodsGetMap.get(PKs[i]);
+            try {
+                Object v = methodInfo.getMethod().invoke(t);
+                values[i]=v;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return values;
+       
     }
     
     public String getTableName(){
