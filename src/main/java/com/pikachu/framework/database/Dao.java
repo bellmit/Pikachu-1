@@ -130,8 +130,8 @@ public class Dao<T> extends DatabaseAccess implements IDao<T> {
             }
             
             T[] result = (T[]) Array.newInstance(sqlInfo.getDataClass(), results.size());
-            results.toArray(result);
-            return result;
+            T[] ts = results.toArray(result);
+            return ts;
         }
     }
     
