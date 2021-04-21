@@ -7,6 +7,8 @@ import com.pikachu.common.database.core.DatabaseType;
 import com.pikachu.common.database.pool.PoolManager;
 import com.pikachu.common.database.pool.core.IPool;
 
+import java.util.List;
+
 /**
  * @Desc 数据库访问对象
  * @Date 2019-11-08 17:26
@@ -52,10 +54,15 @@ public class DatabaseAccess implements IDatabase {
     }
     
     @Override
-    public int[] executeBatch(String[] sqls, Object[][] params, int[][] sqlTypes) throws Exception {
-        return database.executeBatch(sqls, params, sqlTypes);
+    public int[] executeBatch(String sql, List<Object[]> params, int[] sqlTypes) throws Exception {
+        return database.executeBatch(sql, params, sqlTypes);
     }
-    
+
+    @Override
+    public int[] executeBatch(String[] sqls) throws Exception {
+        return new int[0];
+    }
+
     @Override
     public int executeReader(IDataReader reader, String sql, Object[] params, int[] sqlTypes) throws Exception {
         return database.executeReader(reader, sql, params, sqlTypes);

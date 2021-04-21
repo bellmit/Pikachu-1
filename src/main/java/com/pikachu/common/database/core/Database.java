@@ -2,8 +2,10 @@ package com.pikachu.common.database.core;
 
 import com.pikachu.common.database.pool.core.IPool;
 import com.pikachu.common.util.PikachuArrays;
+import com.pikachu.common.util.PikachuStrings;
 
 import java.sql.*;
+import java.util.List;
 
 /**
  * @Desc 数据库对象，执行JDBC的对象
@@ -11,23 +13,21 @@ import java.sql.*;
  * @Author AD
  */
 public abstract class Database implements IDatabase {
-    
+
     // ------------------------ 变量定义 ------------------------
     private final IPool pool;
     // ------------------------ 构造方法 ------------------------
-    
+
     public Database(IPool pool) {
         this.pool = pool;
     }
     // ------------------------ 方法定义 ------------------------
-    
+
     /**
      * 单条执行
      *
      * @param params sql参数
-     *
      * @return 执行所影响的行数
-     *
      * @throws Exception
      */
     @Override
@@ -42,42 +42,35 @@ public abstract class Database implements IDatabase {
             return ps.executeUpdate();
         }
     }
-    
+
     /**
      * 批量执行
      *
-     * @param sqls sql语句
-     *
+     * @param sql sql语句
      * @return
-     *
      * @throws Exception
      */
     @Override
-    public int[] executeBatch(String[] sqls, Object[][] params, int[][] sqlTypes) throws Exception {
+    public int[] executeBatch(String sql, List<Object[]> params, int[] sqlTypes) throws Exception {
         // 判断sql语句是否为空
-        if (PikachuArrays.isEmpty(sqls)) {
+        if (PikachuStrings.isNull(sql)) {
             // 返回空数组
             return PikachuArrays.EMPTY_INT;
         }
+        // 判断sql类型是否为空
+        boolean nullSqlTypes = (sqlTypes == null || sqlTypes.length == 0);
         // 获取连接对象
         try (Connection conn = pool.getConnection()) {
             // 设置不自动提交
             conn.setAutoCommit(false);
-            PreparedStatement ps = null;
-            try {
-                // 判断sql类型是否为空
-                boolean nullSqlTypes = (sqlTypes == null || sqlTypes.length == 0);
-                // 遍历所有的sql语句
-                for (int i = 0, c = sqls.length; i < c; i++) {
-                    String sql = sqls[i];
-                    // 获取sql编译对象
-                    ps = conn.prepareStatement(sql);
-                    // 循环设置参数
-                    for (int j = 0; j < params.length; j++) {
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                for (int i = 0, c = params.size(); i < c; i++) {
+                    Object[] objects = params.get(i);
+                    for (int j = 0; j < objects.length; j++) {
                         if (nullSqlTypes) {
-                            ps.setObject(j + 1, params[i][j]);
+                            ps.setObject(j + 1, objects[j]);
                         } else {
-                            ps.setObject(j + 1, params[i][j], sqlTypes[i][j]);
+                            ps.setObject(j + 1, objects[j], sqlTypes[j]);
                         }
                     }
                     // 添加到批量执行
@@ -85,28 +78,43 @@ public abstract class Database implements IDatabase {
                 }
                 // 批量执行
                 int[] ints = ps.executeBatch();
+                // 清除批量
+                ps.clearBatch();
                 // 设置为自动提交
                 conn.setAutoCommit(true);
                 // 返回每条sql语句执行所影响到结果行数
                 return ints;
-            } catch (Exception e) {
-                throw e;
-            } finally {
-                if (ps != null) {
-                    ps.close();
-                }
             }
         }
     }
-    
+
+    @Override
+    public int[] executeBatch(String[] sqls) throws Exception {
+        if (!PikachuArrays.isEmpty(sqls)) {
+            // 获取连接
+            try (Connection conn = pool.getConnection()) {
+                conn.setAutoCommit(false);
+                try (Statement state = conn.createStatement();) {
+                    for (String sql : sqls) {
+                        state.addBatch(sql);
+                    }
+                    int[] ints = state.executeBatch();
+                    state.clearBatch();
+                    conn.setAutoCommit(true);
+                    return ints;
+                }
+            }
+        }
+        return PikachuArrays.EMPTY_INT;
+
+    }
+
     /**
      * 通过数据读取者读取ResultSet结果集
      *
      * @param reader 数据读取对象
      * @param params sql参数
-     *
      * @return int 结果条数
-     *
      * @throws Exception
      */
     @Override
@@ -126,7 +134,7 @@ public abstract class Database implements IDatabase {
             return reader.read(rs);
         }
     }
-    
+
     @Override
     public Object[] executeReturnGeneratedKeys(String sql, Object[] params, int[] sqlTypes, String[] rows) throws Exception {
         // 打印sql语句
@@ -161,20 +169,20 @@ public abstract class Database implements IDatabase {
                     }
                 }
                 conn.commit();
-                
+
             }
             return result;
         }
     }
-    
+
     protected void setParam(Connection conn, PreparedStatement ps, int index, Object arg, int sqlType) throws SQLException {
         ps.setObject(index, arg, sqlType);
     }
-    
+
     // ------------------------ 私有方法 ------------------------
     private void fillPrepareStatement(Connection conn, PreparedStatement ps, String sql, Object[] args, int[] sqlTypes)
             throws SQLException {
-        
+
         // 判断预编译对象的有效性
         if (ps != null) {
             // 判断判断参数有效性
@@ -196,7 +204,7 @@ public abstract class Database implements IDatabase {
                 }
             }
         }
-        
+
     }
-    
+
 }

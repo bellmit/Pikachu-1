@@ -1,46 +1,53 @@
 package com.pikachu.common.database.core;
 
+import java.util.List;
+
 /**
  * @Desc 数据库工厂
  * @Date 2020/11/21 00:02
  * @Author AD
  */
 public interface IDatabase {
-    
+
     /**
      * 单条执行
      *
      * @param params sql参数
-     *
      * @return
-     *
      * @throws Exception
      */
     int execute(String sql, Object[] params, int[] sqlTypes) throws Exception;
-    
+
     /**
-     * 批量执行
+     * 批量执行，使用prepareStatement
      *
-     * @param sqls sql语句
-     *
+     * @param sql
+     * @param params
+     * @param sqlTypes
      * @return
-     *
      * @throws Exception
      */
-    int[] executeBatch(String[] sqls, Object[][] params, int[][] sqlTypes) throws Exception;
-    
+    int[] executeBatch(String sql, List<Object[]> params, int[] sqlTypes) throws Exception;
+
+    /**
+     * 批量执行，使用statement
+     *
+     * @param sqls sql语句
+     * @return
+     * @throws Exception
+     */
+    int[] executeBatch(String[] sqls) throws Exception;
+
     /**
      * 使用数据读取器读取数据
      *
      * @param reader
      * @param params
-     *
      * @return
-     *
      * @throws Exception
      */
     int executeReader(IDataReader reader, String sql, Object[] params, int[] sqlTypes) throws Exception;
-    
+
     /**
      * 使用数据读取器分页读取
      *
@@ -50,23 +57,19 @@ public interface IDatabase {
      * @param sqlTypes SQL参数类型，参见java.sql.Types
      * @param start    开始行
      * @param rows     总共读取的行数
-     *
      * @return
-     *
      * @throws Exception
      */
     int executeReader(IDataReader reader, String table, Object[] args, int[] sqlTypes, int start, int rows) throws Exception;
-    
+
     /**
      * 执行SQL语句并返回主键
      *
      * @param params
      * @param rows
-     *
      * @return
-     *
      * @throws Exception
      */
     Object[] executeReturnGeneratedKeys(String sql, Object[] params, int[] sqlTypes, String[] rows) throws Exception;
-    
+
 }
