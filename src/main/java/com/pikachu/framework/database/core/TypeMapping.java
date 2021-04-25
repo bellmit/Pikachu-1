@@ -27,7 +27,8 @@ enum TypeMapping {
     BIG_DECIMAL(Types.DECIMAL, BigDecimal.class),
     BYTES(Types.BLOB, byte[].class),
     STRING(Types.VARCHAR, String.class),
-
+    ENUM(Types.VARCHAR, Enum.class),
+    
     TIME(Types.TIME,LocalTime.class),
     DATE(Types.DATE,LocalDate.class),
 
@@ -49,8 +50,12 @@ enum TypeMapping {
     public static int getSQLType(Class<?> javaClass) {
         if (TYPES.containsKey(javaClass)) {
             return TYPES.get(javaClass);
+        }else{
+            if(javaClass.isEnum()){
+                return TYPES.get(Enum.class);
+            }
+            return Types.OTHER;
         }
-        return Types.OTHER;
     }
 
     public static TypeMapping getMapper(Class<?> javaClass){

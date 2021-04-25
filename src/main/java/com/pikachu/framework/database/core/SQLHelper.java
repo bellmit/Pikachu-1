@@ -23,77 +23,81 @@ import java.util.*;
  */
 public final class SQLHelper {
     // ------------------------ 变量定义 ------------------------
-
+    
     // ------------------------ 构造方法 ------------------------
-
+    
     private SQLHelper() {
     }
-
+    
     // ------------------------ 方法定义 ------------------------
-
+    
     /**
      * 获取返回值类型所对应的sql类型
      *
      * @param method get方法对象
+     *
      * @return int-sql对应类型
      */
     public static int getReturnSqlType(Method method) {
         return TypeMapping.getSQLType(method.getReturnType());
     }
-
+    
     /**
      * 获取方法第一个参数类型所对应的sql类型
      *
      * @param method set方法对象
+     *
      * @return int-sql对应类型
      */
     public static int getParameterSqlType(Method method) {
         Class[] classes = method.getParameterTypes();
         return classes.length == 1 ? TypeMapping.getSQLType(classes[0]) : Types.NULL;
     }
-
+    
     /**
      * 生成where数组（查找条件）
      *
      * @param columns 字段,映射bean类的属性
      * @param values  字段值
+     *
      * @return Where[]
      */
     public static Where[] getWheres(String[] columns, Object[] values) {
         if (isValid(columns, values)) {
             Where[] wheres = new Where[columns.length];
-
+            
             for (int i = 0, L = columns.length; i < L; ++i) {
                 wheres[i] = new Where(columns[i], "=", values[i]);
             }
-
+            
             return wheres;
         } else {
             return null;
         }
     }
-
+    
     /**
      * 生成更新信息
      *
      * @param columns 需更新的字段
      * @param values  字段值
+     *
      * @return KeyValue[]
      */
     public static KeyValue[] getUpdates(String[] columns, Object[] values) {
         if (isValid(columns, values)) {
             KeyValue[] kvs = new KeyValue[columns.length];
-
+            
             for (int i = 0, L = columns.length; i < L; ++i) {
                 kvs[i] = new KeyValue(columns[i], values[i]);
             }
-
+            
             return kvs;
         } else {
             return null;
         }
     }
-
+    
     /**
      * 将bean对象转换成可写入数据库的参数（生成唯一主键,将boolean转为char的Y或N）
      *
@@ -101,19 +105,20 @@ public final class SQLHelper {
      * @param setsMap set方法映射
      * @param pks     主键集合
      * @param bean    bean对象
+     *
      * @return SQLParams
      */
     public static SQLParams getCreateParams(MethodInfo[] gets, Map<String, MethodInfo> setsMap, List<String> pks,
-                                            Object bean) {
+            Object bean) {
         Object[] params = new Object[gets.length];
         int[] sqlTypes = new int[gets.length];
         String pk = pks.size() == 1 ? pks.get(0) : null;
-
+        
         for (int i = 0; i < gets.length; ++i) {
             MethodInfo get = gets[i];
             DatabaseType dbType = get.getDbType();
             int sqlType = get.getSqlType();
-
+            
             try {
                 // 获取bean所对应字段的值
                 Object param = get.getMethod().invoke(bean);
@@ -143,12 +148,13 @@ public final class SQLHelper {
         }
         return new SQLParams("", params, sqlTypes);
     }
-
+    
     /**
      * 将数据库里的值转为对应的Java值
      *
      * @param dbValue column值
      * @param set     set方法信息
+     *
      * @return java类型值
      */
     public static Object toJavaData(Object dbValue, MethodInfo set) {
@@ -191,7 +197,13 @@ public final class SQLHelper {
                     return null;
                 } else {
                     if (dbValue instanceof String) {
-                        return dbValue.toString();
+                        // 判断参数类型是否是枚举
+                        Class<?> parameterType = set.getMethod().getParameterTypes()[0];
+                        if (parameterType.isEnum()) {
+                            return Enum.valueOf((Class<? extends Enum>) parameterType, dbValue.toString());
+                        } else {
+                            return dbValue.toString();
+                        }
                     } else {
                         Clob clob = (Clob) dbValue;
                         try {
@@ -315,12 +327,13 @@ public final class SQLHelper {
                 return dbValue;
         }
     }
-
+    
     /**
      * 将where数组转换成SQL参数（SQL语句、SQL参数、SQL参数类型）
      *
      * @param getsMap where的key所对应Java bean的get方法
      * @param wheres  where查询条件数组
+     *
      * @return
      */
     public static SQLParams getWhereParams(Map<String, MethodInfo> getsMap, Where[] wheres) {
@@ -367,7 +380,7 @@ public final class SQLHelper {
                                 sb.append(" AND (");
                             }
                             int whereCount = 0;
-
+                            
                             for (String key : keys) {
                                 if (getsMap.containsKey(key)) {
                                     if (whereCount > 0) {
@@ -408,26 +421,27 @@ public final class SQLHelper {
             return new SQLParams("", null, null);
         }
     }
-
+    
     /**
      * 生成排序语句
      *
      * @param gets   bean对象的方法,用来和orders里的key比对是否存在该方法
      * @param orders 排序条件
+     *
      * @return 排序语句, 如：order by xxx asc,xxx desc
      */
     public static String getOrderSQL(Map<String, MethodInfo> gets, KeyValue[] orders) {
         if (orders != null && orders.length > 0) {
             StringBuilder sb = new StringBuilder(" ORDER BY ");
             boolean failed = false;
-
+            
             for (KeyValue order : orders) {
                 // 获取key,并判断是否有效
                 String k = order.getK();
                 if (k == null) {
                     return null;
                 }
-
+                
                 // 获取value,判断是asc(升序)或desc(降序)
                 String v = String.valueOf(order.getV());
                 if (v != null) {
@@ -438,11 +452,11 @@ public final class SQLHelper {
                 } else {
                     v = "ASC";
                 }
-
+                
                 // 判断该排序字段key的有效性
                 MethodInfo method = gets.get(k.toUpperCase());
                 if (method == null) return null;
-
+                
                 // 生成sql语句
                 sb.append(method.getKey());
                 sb.append(" ");
@@ -457,12 +471,13 @@ public final class SQLHelper {
             return "";
         }
     }
-
+    
     /**
      * 生成更新参数（sql语句,参数值,sql类型）
      *
      * @param gets    bean类的get方法
      * @param updates 更新条件
+     *
      * @return SQLParams sql参数对象
      */
     public static SQLParams getUpdateParams(Map<String, MethodInfo> gets, KeyValue[] updates) {
@@ -479,18 +494,18 @@ public final class SQLHelper {
                 if (PikachuStrings.isNull(k)) {
                     return null;
                 }
-
+                
                 // 获取方法,判断是否存在此属性
                 MethodInfo get = gets.get(k.toUpperCase());
                 if (get == null) return null;
-
+                
                 // 转换为sql参数
                 params[i] = toSQLData(update.getV(), get.getDbType(),
                         get.getSqlType(),
                         get.getMethod().getReturnType());
                 // 获取sql类型
                 sqlTypes[i] = get.getSqlType();
-
+                
                 // 追加update sql
                 sb.append(get.getKey());
                 sb.append("=?");
@@ -501,14 +516,16 @@ public final class SQLHelper {
             return null;
         }
     }
-
+    
     /**
      * 根据 bean,pks 生成where sql语句
      *
      * @param gets get方法
      * @param pks  主键集合
      * @param bean 改bean类对象
+     *
      * @return SQLParams sql参数对象
+     *
      * @throws Exception sql参数值根据bean反射机制调用,可能发生反射异常
      */
     public static SQLParams getPrimaryParamsByBean(Map<String, MethodInfo> gets, List<String> pks, Object bean)
@@ -520,12 +537,12 @@ public final class SQLHelper {
         Object[] params = new Object[pksLength];
         int[] sqlTypes = new int[pksLength];
         StringBuilder sb = new StringBuilder(" WHERE ");
-
+        
         for (int i = 0; i < pksLength; ++i) {
             // 判断bean里是否存在该pk字段
             MethodInfo get = gets.get(pks.get(i));
             if (get == null) return null;
-
+            
             // 生成参数和类型
             params[i] = toSQLData(get.getMethod().invoke(bean),
                     get.getDbType(),
@@ -544,13 +561,14 @@ public final class SQLHelper {
         }
         return new SQLParams(sb.toString(), params, sqlTypes);
     }
-
+    
     /**
      * 获取主键参数（转换成所对应的sql类型）,不包含sql语句
      *
      * @param gets     bean里的get方法
      * @param pks      主键字段
      * @param pksValue 主键字段所对应的值
+     *
      * @return
      */
     public static SQLParams getPrimaryParams(Map<String, MethodInfo> gets, List<String> pks, Object[] pksValue) {
@@ -560,7 +578,7 @@ public final class SQLHelper {
         // 生成容器
         Object[] params = new Object[pksLength];
         int[] types = new int[pksLength];
-
+        
         for (int i = 0; i < pksLength; ++i) {
             // 判断是否存在该主键
             MethodInfo get = gets.get(pks.get(i));
@@ -570,16 +588,17 @@ public final class SQLHelper {
                     get.getMethod().getReturnType());
             types[i] = get.getSqlType();
         }
-
+        
         return new SQLParams("", params, types);
     }
-
+    
     /**
      * 获取需更新bean的所有参数(更新字段在前,主键字段在后)
      *
      * @param gets   bean的get方法
      * @param pkList 主键字段,不能更新
      * @param bean   bean对象
+     *
      * @return SQLParams sql参数对象
      */
     public static SQLParams getUpdateBeanParams(MethodInfo[] gets, List<String> pkList, Object bean) {
@@ -621,9 +640,9 @@ public final class SQLHelper {
             return null;
         }
     }
-
+    
     // ------------------------ 私有方法 ------------------------
-
+    
     private static void fillSQLParam(Object[] params, int[] types, Object bean, int index, MethodInfo info)
             throws Exception {
         params[index] = toSQLData(info.getMethod().invoke(bean),
@@ -631,7 +650,7 @@ public final class SQLHelper {
                 info.getMethod().getReturnType());
         types[index] = info.getSqlType();
     }
-
+    
     /**
      * 将Java的数据类型转换为数据库类型（主要将Java的boolean类型转换为数据库的char类型，true=Y，false=N）
      *
@@ -639,6 +658,7 @@ public final class SQLHelper {
      * @param dbType     数据库类型
      * @param sqlType    数据库字段类型
      * @param returnType Java get方法返回值类型
+     *
      * @return
      */
     private static Object toSQLData(Object param, DatabaseType dbType, int sqlType, Class<?> returnType) {
@@ -646,10 +666,14 @@ public final class SQLHelper {
         if (sqlType == Types.CHAR && TypeMapping.BOOL == mapper) {
             return (Boolean) param ? "Y" : "N";
         } else {
+            if(param.getClass().isEnum()){
+                System.out.println("枚举");
+                return param.toString();
+            }
             return param;
         }
     }
-
+    
     /**
      * 分析Where条件，将where条件转换为SQL语句的表示方式
      *
@@ -660,10 +684,11 @@ public final class SQLHelper {
      * @param sb     字符串拼接对象
      * @param params 将Java Bean对象值(value)转换为SQL值后的容器
      * @param types  value所对应的sql数据类型
+     *
      * @return
      */
     private static boolean analyzeWhere(String column, String o, Object value, Map<String, MethodInfo> gets, StringBuilder sb,
-                                        List<Object> params, List<Integer> types) {
+            List<Object> params, List<Integer> types) {
         // 获取该字段对应的get方法，没有属性方法，则不能获取对应数据库中的值
         MethodInfo get = gets.get(column);
         // Java Bean类中没有该字段对应的属性方法，则返回空
@@ -705,7 +730,7 @@ public final class SQLHelper {
             param = toSQLData(value, get.getDbType(), type,
                     get.getMethod().getReturnType());
         }
-
+        
         sb.append(column);
         sb.append(o);
         sb.append("?");
@@ -713,11 +738,12 @@ public final class SQLHelper {
         types.add(type);
         return true;
     }
-
+    
     /**
      * 修正操作符
      *
      * @param operator 操作符，如：>,<,=,<>,>=,<=,like
+     *
      * @return
      */
     private static String fixOperation(String operator) {
@@ -725,7 +751,7 @@ public final class SQLHelper {
         if (operator != null && !"".equals(operator.trim())) {
             // 判断操作符是否是like
             if (!operator.equals("=") && !operator.equals("<>") && !operator.equals(">") && !operator.equals("<") &&
-                    !operator.equals(">=") && !operator.equals("<=")) {
+                !operator.equals(">=") && !operator.equals("<=")) {
                 // 返回大写LIKE
                 return operator.trim().toLowerCase().equals("like") ? " LIKE " : operator;
             } else {
@@ -736,12 +762,13 @@ public final class SQLHelper {
             return null;
         }
     }
-
+    
     private static boolean isValid(Object[] os1, Object[] os2) {
         if (os1 != null && os2 != null && os1.length == os2.length) {
             return true;
         }
         return false;
     }
-
+    
+    
 }
