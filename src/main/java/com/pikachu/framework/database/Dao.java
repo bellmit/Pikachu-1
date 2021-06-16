@@ -17,9 +17,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @Desc：
- * @Author：AD
- * @Date：2020/1/19 15:59
+ * @Desc
+ * @Author AD
+ * @Date 2020/1/19 15:59
  */
 public class Dao<T> extends DatabaseAccess implements IDao<T> {
     
@@ -149,6 +149,12 @@ public class Dao<T> extends DatabaseAccess implements IDao<T> {
         }
     }
     
+    /**
+     * 使用update语句进行更新：update table set(xxx=?,xxx=?) where pk1=? and pk2=?
+     * @param bean
+     * @return
+     * @throws Exception
+     */
     @Override
     public int edit(T bean) throws Exception {
         SQLParams param = sqlInfo.getUpdateBean(bean);

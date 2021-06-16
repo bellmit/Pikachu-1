@@ -56,8 +56,13 @@ public class Pikachu implements Serializable {
             System.out.println(p);
         }
     
-        // int count = dao.delete(new Where[]{new Where("big_decimal", "in", "9223372036854775809")});
-        // System.out.println(count);
+        String[] pks = dao.getPrimaryKeys();
+        for (String pk : pks) {
+            System.out.println(pk);
+        }
+    
+        int count = dao.delete(new Where[]{new Where("id", "in", "1,2")});
+        System.out.println(count);
     
     }
     

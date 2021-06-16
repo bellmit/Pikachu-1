@@ -97,11 +97,11 @@ public class ValueMatcher {
                 methods = methodList.toArray(new Method[methodList.size()]);
             } else {
                 methods = new Method[1];
-                MethodInfo firstMethodInfo = gets.get(props[0]);
-                if (firstMethodInfo == null) {
+                MethodInfo methodInfo = gets.get(props[0]);
+                if (methodInfo == null) {
                     return null;
                 }
-                methods[0] = firstMethodInfo.getMethod();
+                methods[0] = methodInfo.getMethod();
             }
             // 获取where值
             Object conditionValue = where.getV();
@@ -109,16 +109,15 @@ public class ValueMatcher {
             Class<?> returnType = methods[0].getReturnType();
             IComparer comparer = null;
             if (operator.trim().toLowerCase().equals("like")) {
+                String strValue = "%%";
                 if (conditionValue != null && conditionValue.toString().trim().length() != 0) {
                     // 获取值
-                    String strValue = conditionValue.toString();
-                    // 获取比较器
-                    LikeComparer likeComparer = new LikeComparer(strValue);
-                    // 返回值匹配器
-                    return new ValueMatcher(methods, likeComparer, strValue);
-                } else {
-                    return null;
+                    strValue = conditionValue.toString();
                 }
+                // 获取比较器
+                LikeComparer likeComparer = new LikeComparer(strValue);
+                // 返回值匹配器
+                return new ValueMatcher(methods, likeComparer, strValue);
             } else if (operator.trim().toLowerCase().equals("in")) {
                 return new ValueMatcher(methods, new InComparer(conditionValue), conditionValue);
             } else {
@@ -135,6 +134,5 @@ public class ValueMatcher {
             return null;
         }
     }
-    
     
 }
