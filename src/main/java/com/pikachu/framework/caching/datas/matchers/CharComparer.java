@@ -6,43 +6,46 @@ import java.util.concurrent.ConcurrentHashMap;
 public enum CharComparer implements IComparer<Character> {
     EQUALS("=") {
         @Override
-        public boolean compare(Character first, Character second) {
-            return first.compareTo(second) == 0;
+        public boolean compare(Character compareValue, Character conditionValue) {
+            return compareValue.compareTo(conditionValue) == 0;
         }
     },
     NO_EQUALS("<>") {
         @Override
-        public boolean compare(Character first, Character second) {
-            return first.compareTo(second) != 0;
+        public boolean compare(Character compareValue, Character conditionValue) {
+            return compareValue.compareTo(conditionValue) != 0;
         }
     },
     GREATER(">") {
         @Override
-        public boolean compare(Character first, Character second) {
-            return first > second;
+        public boolean compare(Character compareValue, Character conditionValue) {
+            return compareValue > conditionValue;
         }
     },
 
     GREATER_EQUALS(">=") {
         @Override
-        public boolean compare(Character first, Character second) {
-            return first >= second;
+        public boolean compare(Character compareValue, Character conditionValue) {
+            return compareValue >= conditionValue;
         }
     },
     LESS("<") {
         @Override
-        public boolean compare(Character first, Character second) {
-            return first < second;
+        public boolean compare(Character compareValue, Character conditionValue) {
+            return compareValue < conditionValue;
         }
     },
     LESS_EQUALS("<=") {
         @Override
-        public boolean compare(Character first, Character second) {
-            return first <= second;
+        public boolean compare(Character compareValue, Character conditionValue) {
+            return compareValue <= conditionValue;
         }
     };
-
-
+    
+    @Override
+    public Character parseConditionValue(Class<Character>returnType,Object value){
+        return Character.valueOf(value.toString().charAt(0));
+    }
     private final String operator;
 
     private CharComparer(String operator) {

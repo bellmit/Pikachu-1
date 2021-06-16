@@ -1,16 +1,17 @@
 package com.pikachu.framework.database;
 
+import com.pikachu.common.database.DatabaseAccess;
+import com.pikachu.common.database.core.DatabaseType;
 import com.pikachu.common.database.core.IDatabase;
+import com.pikachu.common.database.pool.PoolManager;
+import com.pikachu.common.database.pool.core.IPool;
+import com.pikachu.common.database.pool.core.PoolConfig;
 import com.pikachu.common.database.pool.core.PoolType;
 import com.pikachu.common.util.PikachuConverts;
 import com.pikachu.framework.caching.datas.CacheManager;
 import com.pikachu.framework.database.core.*;
-import com.pikachu.common.database.DatabaseAccess;
-import com.pikachu.common.database.core.DatabaseType;
-import com.pikachu.common.database.pool.PoolManager;
-import com.pikachu.common.database.pool.core.IPool;
-import com.pikachu.common.database.pool.core.PoolConfig;
 
+import javax.sql.DataSource;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -27,12 +28,16 @@ public class DaoManager implements IDaoManager {
 
     private final String name;
 
-    // private IProtocol protocol;
-
     private boolean isStopped = false;
 
     private DatabaseType databaseType;
-
+    
+    public DaoManager(String name, DataSource dataSource){
+        this.name = name;
+        this.databaseType=DatabaseType.MYSQL;
+        PoolManager.start(name, dataSource);
+    }
+    
     public DaoManager(DatabaseConfig config) throws Exception {
         this.name = config.getName();
         this.databaseType = DatabaseType.get(config.getUrl());
@@ -68,10 +73,6 @@ public class DaoManager implements IDaoManager {
         }
     }
 
-    // public void setProtocol(IProtocol protocol) {
-    //     this.protocol = protocol;
-    // }
-
     public IDatabase getDatabaseAccess() {
         try {
             return new DatabaseAccess(this.name);
@@ -101,18 +102,8 @@ public class DaoManager implements IDaoManager {
 
                     try {
                         if (info.isCaching()) {
-                            // if (protocol == null) {
-                            //     dao = new CacheDao<>(this.name, info);
-                            // } else {
-                            //     dao = new CacheDao<>(this.protocol, info);
-                            // }
                             dao = new CacheDao<>(this.name, info);
                         } else {
-                            // if (protocol == null) {
-                            //     dao = new Dao<>(this.name, info);
-                            // } else {
-                            //     dao = new Dao<>(this.protocol, info);
-                            // }
                             dao = new Dao<>(this.name, info);
                         }
 
@@ -127,20 +118,6 @@ public class DaoManager implements IDaoManager {
     }
 
     private <T> SQLInfo<T> getDaoMethods(Class<T> clazz, ITableInfoGetter<T> getter) {
-        // if (getter == null) {
-        //     getter = new ITableInfoGetter<T>() {
-        //
-        //         public TableInfo getTableInfo(Class<T> clazz) {
-        //             if(DaoManager.this.protocol != null){
-        //                 DataConfig cfg = DaoManager.this.protocol.getDataConfig(clazz);
-        //                 return cfg == null ? null : new TableInfo(cfg.getTable(), cfg.getPks(),
-        //                         cfg.isCache(), cfg.isHistory());
-        //             }
-        //             return null;
-        //         }
-        //     };
-        // }
-
         if (getter == null) {
             getter = new PikachuTableInfoGetter<>();
         }

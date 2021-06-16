@@ -1,11 +1,13 @@
 package com.pikachu.common.database.pool;
 
+import com.pikachu.common.database.pool.core.IPool;
 import com.pikachu.common.database.pool.core.PoolConfig;
 import com.pikachu.common.database.pool.core.PoolType;
 import com.pikachu.common.database.pool.factory.DruidPool;
 import com.pikachu.common.database.pool.factory.HikariCpPool;
-import com.pikachu.common.database.pool.core.IPool;
+import com.pikachu.common.database.pool.factory.SpringPool;
 
+import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,13 +20,23 @@ public final class PoolManager {
     
     private static final Map<String, IPool> POOLS = new HashMap<>();
     
+    public static synchronized IPool start(String name, DataSource dataSource) {
+        if (!POOLS.containsKey(name)) {
+            if (dataSource != null) {
+                IPool pool = new SpringPool(dataSource);
+                POOLS.put(name, pool);
+            }
+        }
+        return POOLS.get(name);
+    }
+    
     public static synchronized IPool start(PoolConfig config) {
-        if(!POOLS.containsKey(config.getPoolName())){
+        if (!POOLS.containsKey(config.getPoolName())) {
             PoolType poolType = config.getPoolType();
             if (poolType == PoolType.DRUID) {
                 IPool druid = new DruidPool(config);
                 POOLS.put(config.getPoolName(), druid);
-            }else{
+            } else {
                 IPool hikari = new HikariCpPool(config);
                 POOLS.put(config.getPoolName(), hikari);
             }

@@ -28,6 +28,7 @@ public class PikachuStrings {
         }
         return sb.toString();
     }
+    
     /**
      * 判断字符串是否为"","    "
      *
@@ -67,6 +68,15 @@ public class PikachuStrings {
         }
     }
     
+    public static String firstCharToLowercase(String str) {
+        if (isNull(str)) {
+            return "";
+        }
+        char[] chars = str.toCharArray();
+        chars[0] += 32;
+        return String.valueOf(chars);
+    }
+    
     /**
      * 获取唯一序列号
      *
@@ -75,4 +85,5 @@ public class PikachuStrings {
     public static String UUID() {
         return UUID.randomUUID().toString().replace("-", "");
     }
+    
 }

@@ -7,8 +7,8 @@ import com.pikachu.framework.caching.datas.ClassCode;
  * @Author：AD
  * @Date：2020/1/16 12:17
  */
-public final class Compares {
-
+public final class ComparerManager {
+    
     public static IComparer getComparer(Class<?> clazz, String operator) {
         int type = ClassCode.getType(clazz);
         switch (type) {
@@ -34,8 +34,21 @@ public final class Compares {
                 return DateComparer.getComparer(operator);
             case ClassCode.LOCAL_DATE_TIME:
                 return LocalDateTimeComparer.getComparer(operator);
+            case ClassCode.BIG_DECIMAL:
+                return BigDecimalComparer.getComparer(operator);
+            case ClassCode.ENUM:
+                return EnumComparer.getComparer(operator);
             default:
-                return null;
+                return StringComparer.getComparer(operator);
         }
     }
+    
+    public static Object parseValue(Class<?> clazz, Object converted) {
+        IComparer comparer = getComparer(clazz, "=");
+        if (comparer == null) {
+            return converted;
+        }
+        return comparer.parseConditionValue(clazz, converted);
+    }
+    
 }

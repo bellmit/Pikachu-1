@@ -35,13 +35,13 @@ public class CacheData<T> {
     private final Set<String> pkSet = new HashSet<>();
 
     /**
-     * 计算主键值所对应的hash值（将hash值转为字符串）的缓存map
+     * 计算主键值所对应的hash值（转为字符串）的缓存，用于存放有主键的数据
      * key:hashCode(pk),value:bean
      */
     private final Map<String, T> dataMap = new LinkedHashMap<>();
 
     /**
-     * - 根据where条件查询到的数据缓存
+     * - 根据where条件查询到的数据缓存，用于存放非主键查询的历史数据
      * - key：where值的hash值，value：根据where条件查询的结果封装成的对象（HistoryData,内部是个数组）
      */
     private HistoryCache<T> historyCache = null;
@@ -153,7 +153,7 @@ public class CacheData<T> {
      */
     void put(T data) throws Exception {
         if (data != null) {
-            // 获取where值的hash值字符串
+            // 获取主键值
             String pkHashCode = CacheHelper.getPrimaryValueByKeys(methods.getMethodsGetMap(), pks,
                     data);
             if (pkHashCode != null) {
@@ -174,13 +174,12 @@ public class CacheData<T> {
                         this.dispatchChanged(CacheEvent.ACTION_UPDATED, data);
                     }
                 }
-
             }
         }
     }
 
     /**
-     * 将数据全部存入主键缓存，并清除非主键的历史缓存
+     * 将数据全部存入主键缓存，并清除非主键查询的历史缓存
      *
      * @param beans
      * @throws Exception
@@ -221,7 +220,7 @@ public class CacheData<T> {
             if (wheres != null && wheres.length > 0) {
                 // 将where的key全部转为大写
                 CacheHelper.upperCaseWhereKeys(wheres);
-                // 获取主键值的hash code字符串
+                // 获取主键值的hash code字符串，where数组的操作符必须都是"="
                 String pkHashCode = CacheHelper.getPrimaryValueByWheres(this.pks, wheres);
                 // 主键缓存
                 if (pkHashCode != null) {
@@ -477,6 +476,7 @@ public class CacheData<T> {
      * @throws Exception
      */
     T[] getList(Where[] wheres, KeyValue[] orders) throws Exception {
+        // 在CacheDao的构造方法初始化中，已经从数据库中获取了全部的数据
         if (this.dataMap.size() == 0) {
             return (T[]) Array.newInstance(this.dataClass, 0);
         } else {
@@ -500,7 +500,7 @@ public class CacheData<T> {
             if (wheres != null && wheres.length != 0) {
                 // 将where查询条件的key转为大写
                 CacheHelper.upperCaseWhereKeys(wheres);
-                // 根据where计算主键值（判断wheres数组是否都是主键，先按照主键查找）
+                // 根据where计算主键值（判断wheres数组是否都是主键&比较符是"="，先按照主键查找）
                 String primaryValue = CacheHelper.getPrimaryValueByWheres(this.pks, wheres);
                 if (primaryValue != null) {
                     T data = this.dataMap.get(primaryValue);
@@ -517,8 +517,7 @@ public class CacheData<T> {
                     datas = this.getArrayData();
                     List<T> dataList = new ArrayList<>();
                     // 根据where条件获取值匹配器
-                    ValueMatcher[] valueMatchers = CacheHelper.getWhereMatchers(
-                            this.methods.getMethodsGetMap(), wheres);
+                    ValueMatcher[] valueMatchers = CacheHelper.getWhereMatchers(this.methods.getMethodsGetMap(), wheres);
                     for (int i = 0, L = datas.length; i < L; ++i) {
                         T data = datas[i];
                         // 匹配命中
@@ -533,7 +532,6 @@ public class CacheData<T> {
                     if (this.historyCache != null) {
                         this.historyCache.put(historyCacheKey, datas);
                     }
-
                     return datas;
                 }
             } else {

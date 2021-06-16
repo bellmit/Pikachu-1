@@ -46,14 +46,20 @@ public final class LikeComparer implements IComparer {
         }
 
     }
-
+    
     @Override
-    public boolean compare(Object first, Object second) {
-        if (this.pattern != null && first != null) {
-            Matcher matcher = this.pattern.matcher(first.toString());
+    public boolean compare(Object compareValue, Object conditionValue) {
+        if (this.pattern != null && compareValue != null) {
+            Matcher matcher = this.pattern.matcher(compareValue.toString());
             return matcher.find();
         } else {
             return false;
         }
     }
+    
+    @Override
+    public Object parseConditionValue(Class returnType, Object value) {
+        return null;
+    }
+    
 }

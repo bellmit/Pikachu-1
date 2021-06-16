@@ -413,7 +413,7 @@ public final class SQLHelper {
                 for (int i = 0; i < sqlTypes.length; i++) {
                     sqlTypes[i] = sqlTypeList.get(i);
                 }
-                // 创建SQL参数对象并返回（SQL=" WHERE (key=? OR key>?) AND key<>?"）
+                // 创建SQL参数对象并返回（SQL=" WHERE (key1=? OR key2>?) AND key3<>?"）
                 return new SQLParams(" WHERE " + sb.toString(),
                         params.toArray(new Object[0]), sqlTypes);
             }
@@ -641,6 +641,99 @@ public final class SQLHelper {
         }
     }
     
+    public static List<Object> getConditionValuesWithOperatorIsIn(Object value) {
+        List<Object> valueList = new ArrayList<>();
+        if (value == null) {
+            return valueList;
+        } else {
+            Class<?> c = value.getClass();
+            // 判断是否是数组
+            if (c.isArray()) {
+                Class<?> componentType = c.getComponentType();
+                // 基本数据类型数组
+                if (componentType.isPrimitive()) {
+                    if (char.class.equals(componentType)) {
+                        char[] chars = (char[]) value;
+                        for (char cs : chars) {
+                            valueList.add(cs);
+                        }
+                    } else if (boolean.class.equals(componentType)) {
+                        boolean[] booleans = (boolean[]) value;
+                        for (boolean b : booleans) {
+                            if (b) {
+                                valueList.add('Y');
+                            } else {
+                                valueList.add('N');
+                            }
+                        }
+                    } else if (byte.class.equals(componentType)) {
+                        byte[] bytes = (byte[]) value;
+                        for (byte b : bytes) {
+                            valueList.add(b);
+                        }
+                    } else if (short.class.equals(componentType)) {
+                        short[] shorts = (short[]) value;
+                        for (short s : shorts) {
+                            valueList.add(s);
+                        }
+                    } else if (int.class.equals(componentType)) {
+                        int[] ints = (int[]) value;
+                        for (int i : ints) {
+                            valueList.add(i);
+                        }
+                    } else if (long.class.equals(componentType)) {
+                        long[] longs = (long[]) value;
+                        for (long l : longs) {
+                            valueList.add(l);
+                        }
+                    } else if (float.class.equals(componentType)) {
+                        float[] floats = (float[]) value;
+                        for (float f : floats) {
+                            valueList.add(f);
+                        }
+                    } else if (double.class.equals(componentType)) {
+                        double[] doubles = (double[]) value;
+                        for (double d : doubles) {
+                            valueList.add(d);
+                        }
+                    }
+                } else {
+                    // 对象类型数组
+                    Object[] objects = (Object[]) value;
+                    for (Object object : objects) {
+                        valueList.add(object);
+                    }
+                }
+            } else if (List.class.isAssignableFrom(c)) {
+                valueList = (List<Object>) value;
+            } else if (Set.class.isAssignableFrom(c)) {
+                Set<Object> set = (Set<Object>) value;
+                for (Object s : set) {
+                    valueList.add(s);
+                }
+            } else if (c.equals(String.class)) {
+                String ss = (String) value;
+                if (ss != null && !"".equals(ss.trim())) {
+                    ss = ss.replace("，", ",");
+                    for (String s : ss.split(",")) {
+                        valueList.add(s);
+                    }
+                }
+            }else if(Enum.class.isAssignableFrom(c)){
+                Class<Enum> enumClass = (Class<Enum>) c;
+                Enum conditionValueEnum = Enum.valueOf(enumClass, value.toString());
+                valueList.add(conditionValueEnum);
+            }
+        }
+        valueList.sort(new Comparator<Object>() {
+            @Override
+            public int compare(Object first, Object second) {
+                return first.toString().compareTo(second.toString());
+            }
+        });
+        return valueList;
+    }
+    
     // ------------------------ 私有方法 ------------------------
     
     private static void fillSQLParam(Object[] params, int[] types, Object bean, int index, MethodInfo info)
@@ -666,8 +759,7 @@ public final class SQLHelper {
         if (sqlType == Types.CHAR && TypeMapping.BOOL == mapper) {
             return (Boolean) param ? "Y" : "N";
         } else {
-            if(param.getClass().isEnum()){
-                System.out.println("枚举");
+            if (param.getClass().isEnum()) {
                 return param.toString();
             }
             return param;
@@ -712,31 +804,54 @@ public final class SQLHelper {
         }
         // 获取对应的数据库数据类型
         int type = get.getSqlType();
-        Object param;
-        if (type == Types.VARCHAR) {
-            if (" LIKE ".equals(o)) {
-                // 将column转为大写(upper是数据库里的函数)
-                column = "UPPER(" + column + ")";
+        if (" IN ".equals(o)) {
+            List<Object> valueList = getConditionValuesWithOperatorIsIn(value);
+            if (valueList == null || valueList.size() == 0) {
+                return false;
+            }
+            sb.append(column);
+            sb.append(o);
+            sb.append("(");
+            for (int i = 0, L = valueList.size(); i < L; i++) {
+                if (i > 0) {
+                    sb.append(",");
+                }
+                sb.append("?");
+                Object o1 = valueList.get(i);
+                Object sqlParam = toSQLData(o1, get.getDbType(), type, get.getMethod().getReturnType());
+                params.add(sqlParam);
+                types.add(type);
+            }
+            sb.append(")");
+            return true;
+        } else {
+            Object param;
+            if (type == Types.VARCHAR) {
+                if (" LIKE ".equals(o)) {
+                    // 将column转为大写(upper是数据库里的函数)
+                    column = "UPPER(" + column + ")";
                 /*
                 - 数据库的字段是varchar类型，且是like比较符时，like模糊查询不区分大小写
                 - 如果要区分大小写，则使用like binary %xxx%
                  */
-                param = String.valueOf(value).toUpperCase();
+                    param = String.valueOf(value).toUpperCase();
+                } else {
+                    param = String.valueOf(value);
+                }
             } else {
-                param = String.valueOf(value);
+                // 将Java的参数转为SQL参数，主要将value（boolean类型）转为数据库表示的char类型（Y或N）
+                param = toSQLData(value, get.getDbType(), type,
+                        get.getMethod().getReturnType());
             }
-        } else {
-            // 将Java的参数转为SQL参数，主要将value（boolean类型）转为数据库表示的char类型（Y或N）
-            param = toSQLData(value, get.getDbType(), type,
-                    get.getMethod().getReturnType());
+            
+            sb.append(column);
+            sb.append(o);
+            sb.append("?");
+            params.add(param);
+            types.add(type);
+            return true;
         }
         
-        sb.append(column);
-        sb.append(o);
-        sb.append("?");
-        params.add(param);
-        types.add(type);
-        return true;
     }
     
     /**
@@ -753,7 +868,13 @@ public final class SQLHelper {
             if (!operator.equals("=") && !operator.equals("<>") && !operator.equals(">") && !operator.equals("<") &&
                 !operator.equals(">=") && !operator.equals("<=")) {
                 // 返回大写LIKE
-                return operator.trim().toLowerCase().equals("like") ? " LIKE " : operator;
+                if (operator.trim().toLowerCase().equals("like")) {
+                    return " LIKE ";
+                } else if (operator.trim().toLowerCase().equals("in")) {
+                    return " IN ";
+                } else {
+                    return operator;
+                }
             } else {
                 // 返回比较符号
                 return operator;
@@ -769,6 +890,5 @@ public final class SQLHelper {
         }
         return false;
     }
-    
     
 }

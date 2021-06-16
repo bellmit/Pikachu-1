@@ -1,47 +1,52 @@
 package com.pikachu.framework.caching.datas.matchers;
 
+import com.pikachu.common.util.PikachuConverts;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public enum FloatComparer implements IComparer<Float> {
     EQUALS("=") {
         @Override
-        public boolean compare(Float first, Float second) {
-            return first.compareTo(second) == 0;
+        public boolean compare(Float compareValue, Float conditionValue) {
+            return compareValue.compareTo(conditionValue) == 0;
         }
     },
     NO_EQUALS("<>") {
         @Override
-        public boolean compare(Float first, Float second) {
-            return first.compareTo(second) != 0;
+        public boolean compare(Float compareValue, Float conditionValue) {
+            return compareValue.compareTo(conditionValue) != 0;
         }
     },
     GREATER(">") {
         @Override
-        public boolean compare(Float first, Float second) {
-            return first > second;
+        public boolean compare(Float compareValue, Float conditionValue) {
+            return compareValue > conditionValue;
         }
     },
 
     GREATER_EQUALS(">=") {
         @Override
-        public boolean compare(Float first, Float second) {
-            return first >= second;
+        public boolean compare(Float compareValue, Float conditionValue) {
+            return compareValue >= conditionValue;
         }
     },
     LESS("<") {
         @Override
-        public boolean compare(Float first, Float second) {
-            return first < second;
+        public boolean compare(Float compareValue, Float conditionValue) {
+            return compareValue < conditionValue;
         }
     },
     LESS_EQUALS("<=") {
         @Override
-        public boolean compare(Float first, Float second) {
-            return first <= second;
+        public boolean compare(Float compareValue, Float conditionValue) {
+            return compareValue <= conditionValue;
         }
     };
-
+    @Override
+    public Float parseConditionValue(Class<Float> returnType, Object value) {
+        return PikachuConverts.toFloat(value.toString());
+    }
     private final String operator;
 
     private FloatComparer(String operator) {

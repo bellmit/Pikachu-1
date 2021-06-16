@@ -49,6 +49,7 @@ public class DaoBeanReader<T> implements IDataReader {
                 if (set != null) {
                     // 获取set方法
                     Method method = set.getMethod();
+                    
                     // 获取数据库字段值
                     Object param = rs.getObject(i);
                     // 转为Java值

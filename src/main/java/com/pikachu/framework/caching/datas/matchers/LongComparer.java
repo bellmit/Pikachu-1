@@ -1,46 +1,53 @@
 package com.pikachu.framework.caching.datas.matchers;
 
+import com.pikachu.common.util.PikachuConverts;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public enum LongComparer implements IComparer<Long> {
     EQUALS("=") {
         @Override
-        public boolean compare(Long first, Long second) {
-            return first.compareTo(second) == 0;
+        public boolean compare(Long compareValue, Long conditionValue) {
+            return compareValue.compareTo(conditionValue) == 0;
         }
     },
     NO_EQUALS("<>") {
         @Override
-        public boolean compare(Long first, Long second) {
-            return first.compareTo(second) != 0;
+        public boolean compare(Long compareValue, Long conditionValue) {
+            return compareValue.compareTo(conditionValue) != 0;
         }
     },
     GREATER(">") {
         @Override
-        public boolean compare(Long first, Long second) {
-            return first > second;
+        public boolean compare(Long compareValue, Long conditionValue) {
+            return compareValue > conditionValue;
         }
     },
 
     GREATER_EQUALS(">=") {
         @Override
-        public boolean compare(Long first, Long second) {
-            return first >= second;
+        public boolean compare(Long compareValue, Long conditionValue) {
+            return compareValue >= conditionValue;
         }
     },
     LESS("<") {
         @Override
-        public boolean compare(Long first, Long second) {
-            return first < second;
+        public boolean compare(Long compareValue, Long conditionValue) {
+            return compareValue < conditionValue;
         }
     },
     LESS_EQUALS("<=") {
         @Override
-        public boolean compare(Long first, Long second) {
-            return first <= second;
+        public boolean compare(Long compareValue, Long conditionValue) {
+            return compareValue <= conditionValue;
         }
     };
+    
+    @Override
+    public Long parseConditionValue(Class<Long> returnType, Object value) {
+        return PikachuConverts.toLong(value);
+    }
 
     private final String operator;
 

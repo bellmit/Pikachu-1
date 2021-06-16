@@ -261,6 +261,10 @@ public class PikachuConverts {
         return value == null ? defaultValue : new BigDecimal(value.toString());
     }
     
+    public static Enum toEnum(Class<?> clazz, String enumString) {
+        Class<Enum> enumClass = (Class<Enum>) clazz;
+        return Enum.valueOf(enumClass, enumString);
+    }
     
     public static Date toDate(Object o) {
         if (o == null) {
@@ -346,7 +350,6 @@ public class PikachuConverts {
         return toLocalDateTime(new Date((Long) o));
     }
     
-    
     /**
      * 将两个数组进行复制整合
      *
@@ -431,4 +434,5 @@ public class PikachuConverts {
             return "";
         }
     }
+    
 }

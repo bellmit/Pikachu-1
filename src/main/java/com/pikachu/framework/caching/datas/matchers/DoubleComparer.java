@@ -1,59 +1,65 @@
 package com.pikachu.framework.caching.datas.matchers;
 
+import com.pikachu.common.util.PikachuConverts;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public enum DoubleComparer implements IComparer<Double> {
     EQUALS("=") {
         @Override
-        public boolean compare(Double first, Double second) {
-            return first.compareTo(second) == 0;
+        public boolean compare(Double compareValue, Double conditionValue) {
+            return compareValue.compareTo(conditionValue) == 0;
         }
     },
     NO_EQUALS("<>") {
         @Override
-        public boolean compare(Double first, Double second) {
-            return first.compareTo(second) != 0;
+        public boolean compare(Double compareValue, Double conditionValue) {
+            return compareValue.compareTo(conditionValue) != 0;
         }
     },
     GREATER(">") {
         @Override
-        public boolean compare(Double first, Double second) {
-            return first > second;
+        public boolean compare(Double compareValue, Double conditionValue) {
+            return compareValue > conditionValue;
         }
     },
-
     GREATER_EQUALS(">=") {
         @Override
-        public boolean compare(Double first, Double second) {
-            return first >= second;
+        public boolean compare(Double compareValue, Double conditionValue) {
+            return compareValue >= conditionValue;
         }
     },
     LESS("<") {
         @Override
-        public boolean compare(Double first, Double second) {
-            return first < second;
+        public boolean compare(Double compareValue, Double conditionValue) {
+            return compareValue < conditionValue;
         }
     },
     LESS_EQUALS("<=") {
         @Override
-        public boolean compare(Double first, Double second) {
-            return first <= second;
+        public boolean compare(Double compareValue, Double conditionValue) {
+            return compareValue <= conditionValue;
         }
     };
-
+    
+    @Override
+    public Double parseConditionValue(Class<Double> returnType, Object value) {
+        return PikachuConverts.toDouble(value);
+    }
+    
     private final String operator;
-
+    
     private DoubleComparer(String operator) {
         this.operator = operator;
     }
-
+    
     private static final Map<String, IComparer> map = new ConcurrentHashMap<>();
-
+    
     public static IComparer getComparer(String operator) {
         return map.get(operator);
     }
-
+    
     static {
         DoubleComparer[] comparers = values();
         for (DoubleComparer comparer : comparers) {

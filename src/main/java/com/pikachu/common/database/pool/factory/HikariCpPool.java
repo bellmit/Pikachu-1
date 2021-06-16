@@ -6,6 +6,7 @@ import com.pikachu.common.database.pool.core.PoolConfig;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.pool.HikariPool;
 
+import javax.sql.DataSource;
 import java.sql.Connection;
 
 /**
@@ -15,8 +16,9 @@ import java.sql.Connection;
  */
 public class HikariCpPool implements IPool {
     
-    private final HikariPool pool;
-    private final PoolConfig config;
+    private HikariPool pool;
+    private PoolConfig config;
+    private DataSource dataSource;
     
     public HikariCpPool(PoolConfig config) {
         this.config = config;

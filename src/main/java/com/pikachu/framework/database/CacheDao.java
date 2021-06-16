@@ -10,9 +10,9 @@ import com.pikachu.common.collection.KeyValue;
 import com.pikachu.common.collection.Where;
 
 /**
- * @Desc：
- * @Author：AD
- * @Date：2020/1/19 17:31
+ * @Desc 缓存dao，能使用缓存的，bean肯定有主键
+ * @Author AD
+ * @Date 2020/1/19 17:31
  */
 public class CacheDao<T> implements IDao<T> {
     
@@ -23,12 +23,14 @@ public class CacheDao<T> implements IDao<T> {
     CacheDao(String name, SQLInfo<T> sqlInfo) throws Exception {
         this.dataClass = sqlInfo.getDataClass();
         this.sqlInfo = sqlInfo;
+        // 非缓存的dao，缓存里没有数据时，直接访问数据库获取
         this.dao = PikachuStrings.isNotNull(name) ? new Dao<>(name, sqlInfo) : null;
         CacheManager.createCache(dataClass, sqlInfo.getPrimaryKeys(),
                 sqlInfo.isCachingHistory(), sqlInfo.getType());
         CacheData<T> cacheData = CacheManager.lock(this.dataClass);
         
         try {
+            // 从数据库中获取所有数据存入缓存，bean肯定有主键
             CacheManager.putAll(cacheData, dao.getList(null, null), false);
         } finally {
             CacheManager.unlock(cacheData);
@@ -201,10 +203,11 @@ public class CacheDao<T> implements IDao<T> {
     @Override
     public T put(T bean) throws Exception {
         CacheData<T> cacheData = CacheManager.lock(dataClass);
-        
         T t;
         try {
+            // 先存入数据库
             t = dao.put(bean);
+            // 再存入缓存
             CacheManager.put(cacheData, t);
         } finally {
             CacheManager.unlock(cacheData);
@@ -219,7 +222,9 @@ public class CacheDao<T> implements IDao<T> {
         
         T[] results;
         try {
+            // 先存入数据库
             results = dao.putAll(beans);
+            // 再存入缓存
             CacheManager.putAll(cacheData, results, true);
         } finally {
             CacheManager.unlock(cacheData);

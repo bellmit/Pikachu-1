@@ -13,41 +13,48 @@ import java.util.List;
  * @Author AD
  */
 public abstract class Database implements IDatabase {
-
+    
     // ------------------------ 变量定义 ------------------------
-    private final IPool pool;
+    private IPool pool;
+    
     // ------------------------ 构造方法 ------------------------
-
+    
     public Database(IPool pool) {
         this.pool = pool;
     }
     // ------------------------ 方法定义 ------------------------
-
+    
     /**
      * 单条执行
      *
      * @param params sql参数
+     *
      * @return 执行所影响的行数
+     *
      * @throws Exception
      */
     @Override
     public int execute(String sql, Object[] params, int[] sqlTypes) throws Exception {
         // 获取连接
-        try (Connection conn = pool.getConnection();
-             // 获取预编译对象
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            // 填充sql参数
-            fillPrepareStatement(conn, ps, sql, params, sqlTypes);
-            // 返回执行结果所影响的行数
-            return ps.executeUpdate();
+        try (Connection conn = pool.getConnection()) {
+            // 获取预编译对象
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                // 填充sql参数
+                fillPrepareStatement(conn, ps, sql, params, sqlTypes);
+                // 返回执行结果所影响的行数
+                int count = ps.executeUpdate();
+                return count;
+            }
         }
     }
-
+    
     /**
      * 批量执行
      *
      * @param sql sql语句
+     *
      * @return
+     *
      * @throws Exception
      */
     @Override
@@ -84,10 +91,14 @@ public abstract class Database implements IDatabase {
                 conn.setAutoCommit(true);
                 // 返回每条sql语句执行所影响到结果行数
                 return ints;
+            }catch (Exception e){
+                conn.rollback();
+                conn.setAutoCommit(true);
+                throw e;
             }
         }
     }
-
+    
     @Override
     public int[] executeBatch(String[] sqls) throws Exception {
         if (!PikachuArrays.isEmpty(sqls)) {
@@ -102,19 +113,25 @@ public abstract class Database implements IDatabase {
                     state.clearBatch();
                     conn.setAutoCommit(true);
                     return ints;
+                }catch (Exception e){
+                    conn.rollback();
+                    conn.setAutoCommit(true);
+                    throw e;
                 }
             }
         }
         return PikachuArrays.EMPTY_INT;
-
+        
     }
-
+    
     /**
      * 通过数据读取者读取ResultSet结果集
      *
      * @param reader 数据读取对象
      * @param params sql参数
+     *
      * @return int 结果条数
+     *
      * @throws Exception
      */
     @Override
@@ -134,7 +151,7 @@ public abstract class Database implements IDatabase {
             return reader.read(rs);
         }
     }
-
+    
     @Override
     public Object[] executeReturnGeneratedKeys(String sql, Object[] params, int[] sqlTypes, String[] rows) throws Exception {
         // 打印sql语句
@@ -169,20 +186,20 @@ public abstract class Database implements IDatabase {
                     }
                 }
                 conn.commit();
-
+                
             }
             return result;
         }
     }
-
+    
     protected void setParam(Connection conn, PreparedStatement ps, int index, Object arg, int sqlType) throws SQLException {
         ps.setObject(index, arg, sqlType);
     }
-
+    
     // ------------------------ 私有方法 ------------------------
     private void fillPrepareStatement(Connection conn, PreparedStatement ps, String sql, Object[] args, int[] sqlTypes)
             throws SQLException {
-
+        
         // 判断预编译对象的有效性
         if (ps != null) {
             // 判断判断参数有效性
@@ -204,7 +221,6 @@ public abstract class Database implements IDatabase {
                 }
             }
         }
-
     }
-
+    
 }

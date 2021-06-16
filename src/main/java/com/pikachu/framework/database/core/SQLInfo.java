@@ -105,7 +105,8 @@ public class SQLInfo<T> {
             }
         }
         // 表名转换为大写
-        this.tableName = tableName.toUpperCase();
+        tableName = tableName.toUpperCase();
+        this.tableName = tableName;
         // 数据库类型
         this.dbType = dbType;
         // bean数据类型
@@ -171,7 +172,7 @@ public class SQLInfo<T> {
                                 "=?,") + "=? WHERE " + pkSQL;
             }
         } else {
-            // 没有主键的，可能是没有使用注解的，并不是关系映射表
+            // 没有主键时，缓存和历史查询缓存都将失效
             this.caching = false;
             this.cachingHistory = false;
         }

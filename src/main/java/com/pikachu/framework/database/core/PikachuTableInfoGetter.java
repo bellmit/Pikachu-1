@@ -3,6 +3,7 @@ package com.pikachu.framework.database.core;
 import com.pikachu.common.annotations.IColumn;
 import com.pikachu.common.annotations.ITable;
 import com.pikachu.common.util.PikachuArrays;
+import com.pikachu.common.util.PikachuStrings;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -22,6 +23,9 @@ public class PikachuTableInfoGetter<T> implements ITableInfoGetter<T> {
         }
         ITable table = clazz.getAnnotation(ITable.class);
         String tableName = table.table();
+        if(PikachuStrings.isNull(tableName)){
+            tableName = clazz.getSimpleName();
+        }
         boolean cache = table.cache();
         boolean history = table.history();
         Field[] fields = clazz.getDeclaredFields();

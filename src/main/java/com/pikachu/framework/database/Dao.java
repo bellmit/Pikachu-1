@@ -23,19 +23,17 @@ import java.util.List;
  */
 public class Dao<T> extends DatabaseAccess implements IDao<T> {
     
-    // private IProtocol protocol;
     private SQLInfo<T> sqlInfo;
+    
+    Dao() throws Exception {
+        super("");
+    }
     
     Dao(String name, SQLInfo<T> sqlInfo) throws Exception {
         super(name);
         this.sqlInfo = sqlInfo;
+        
     }
-    
-    // Dao(IProtocol protocol, SQLInfo<T> sqlInfo) throws Exception {
-    //     super(protocol.getName());
-    //     this.protocol = protocol;
-    //     this.sqlInfo = sqlInfo;
-    // }
     
     @Override
     public String[] getPrimaryKeys() {

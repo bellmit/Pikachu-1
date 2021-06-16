@@ -2,9 +2,10 @@ package com.pikachu.common.database.pool.factory;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.pikachu.common.database.core.DatabaseType;
-import com.pikachu.common.database.pool.core.PoolConfig;
 import com.pikachu.common.database.pool.core.IPool;
+import com.pikachu.common.database.pool.core.PoolConfig;
 
+import javax.sql.DataSource;
 import java.sql.Connection;
 
 /**
@@ -18,12 +19,17 @@ public final class DruidPool implements IPool {
     /**
      * 数据库连接池
      */
-    private DruidDataSource pool;
+    private DataSource pool;
     /**
      * 连接池配置对象
      */
-    private final PoolConfig config;
+    private PoolConfig config;
+    
     // ------------------------ 构造方法 ------------------------
+    
+    public DruidPool(DataSource dataSource) {
+        this.pool = dataSource;
+    }
     
     /**
      * Druid数据库连接池构造方法
@@ -68,6 +74,21 @@ public final class DruidPool implements IPool {
     @Override
     public Connection getConnection() throws Exception {
         return pool.getConnection();
+        // // 保证在同一条线程里拿到的是同一个连接
+        // Connection conn = connThreadLocal.get();
+        // if (conn != null && !conn.isClosed()) {
+        //     return conn;
+        // } else {
+        //     synchronized (connLock) {
+        //         if (conn != null && !conn.isClosed()) {
+        //             return conn;
+        //         }
+        //         connThreadLocal.remove();
+        //         conn = pool.getConnection();
+        //         connThreadLocal.set(conn);
+        //         return conn;
+        //     }
+        // }
     }
     
     @Override
@@ -77,7 +98,7 @@ public final class DruidPool implements IPool {
     
     @Override
     public void stop() throws Exception {
-        pool.close();
+        ((DruidDataSource) pool).close();
     }
     
 }

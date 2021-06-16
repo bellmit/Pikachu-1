@@ -2,6 +2,7 @@ package com.pikachu;
 
 import com.pikachu.common.annotations.IColumn;
 import com.pikachu.common.annotations.ITable;
+import com.pikachu.common.collection.Where;
 import com.pikachu.framework.database.DaoManager;
 import com.pikachu.framework.database.IDao;
 import com.pikachu.framework.database.core.DatabaseConfig;
@@ -11,9 +12,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.StringJoiner;
+import java.util.*;
 
 /**
  * @Desc
@@ -33,16 +32,33 @@ public class Pikachu implements Serializable {
         
         DaoManager daoManager = new DaoManager(d);
         IDao<Pikachu> dao = daoManager.getDao(Pikachu.class);
-        String tableName = dao.getTableName();
+        Where[] ws = new Where[1];
+        List<Object> ages = new ArrayList<>();
+        ages.add(1);
+        ages.add(2);
+        int[] is = new int[2];
+        is[0] = 1;
+        is[1] = 2;
         
-        System.out.println(tableName);
-        Pikachu add = dao.add(new Pikachu());
-        System.out.println(add);
-    
-        Pikachu[] list = dao.getList(null, null);
-        for (Pikachu pikachu : list) {
-            System.out.println(pikachu);
+        Integer[] integers = new Integer[2];
+        integers[0] = 1;
+        integers[1] = 2;
+        Set<Enums> enums = new HashSet<>();
+        enums.add(Enums.ONE);
+        enums.add(Enums.two);
+        
+        Enums[] enumss = new Enums[2];
+        enumss[0]=Enums.ONE;
+        enumss[1]=Enums.two;
+        ws[0] = new Where("enums", "in", enums);
+        Pikachu[] ps = dao.getList(ws, null);
+        for (Pikachu p : ps) {
+            System.out.println(p);
         }
+    
+        // int count = dao.delete(new Where[]{new Where("big_decimal", "in", "9223372036854775809")});
+        // System.out.println(count);
+    
     }
     
     @IColumn(doc = "主键", pk = true)
@@ -55,6 +71,7 @@ public class Pikachu implements Serializable {
     private LocalDateTime birthday = LocalDateTime.now();
     private Date now = new Date();
     private byte[] bytes = new byte[]{1, 2, 3};
+    @IColumn(doc = "测试", column = "big_decimal")
     private BigDecimal bigDecimal = new BigDecimal(Long.MAX_VALUE);
     private LocalDate dates = LocalDate.now();
     private LocalTime times = LocalTime.now();
@@ -151,8 +168,6 @@ public class Pikachu implements Serializable {
     public void setBytes(byte[] bytes) {
         this.bytes = bytes;
     }
-    
-   
     
     public LocalDate getDates() {
         return dates;
