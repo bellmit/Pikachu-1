@@ -48,6 +48,11 @@ public final class MethodData {
          * 获取所有的方法进行遍历，将bean里面的方法封装成MethodInfo对象
          * 同时以大写属性名作为key存入map
          */
+        Field[] fields = dataClass.getDeclaredFields();
+        Map<String, Field> fieldMap = new HashMap<>();
+        for (Field field : fields) {
+            fieldMap.put(field.getName(), field);
+        }
         for (Method method : dataClass.getDeclaredMethods()) {
             String name = method.getName();
             String NAME = name.toUpperCase();
@@ -56,7 +61,7 @@ public final class MethodData {
             int returnSqlType;
             if (NAME.startsWith("GET")) {
                 // 映射表的字段名,也是key
-                KEY = getKey(method, 3);
+                KEY = getKey(fieldMap, method, 3);
                 // 属性名
                 propName = name.substring(3);
                 // 返回值所对应的数据库表sql类型
@@ -67,13 +72,13 @@ public final class MethodData {
                 int paramSqlType = SQLHelper.getParameterSqlType(method);
                 if (paramSqlType != Types.NULL) {
                     // 字段名
-                    KEY = getKey(method, 3);
+                    KEY = getKey(fieldMap, method, 3);
                     // 属性名
                     propName = name.substring(3);
                     sets.add(new MethodInfo(KEY, propName, method, dbType, paramSqlType));
                 }
             } else if (NAME.startsWith("IS")) {
-                KEY = getKey(method, 2);
+                KEY = getKey(fieldMap, method, 2);
                 propName = name.substring(2);
                 returnSqlType = SQLHelper.getReturnSqlType(method);
                 gets.add(new MethodInfo(KEY, propName, method, dbType, returnSqlType));
@@ -137,26 +142,22 @@ public final class MethodData {
     }
     
     // ------------------------ 私有方法 ------------------------
-    private String getKey(Method method, int startIndex) {
+    private String getKey(Map<String, Field> fieldMap, Method method, int startIndex) {
         // 先获取方法对应的成员变量
         String fieldName = PikachuStrings.firstCharToLowercase(method.getName().substring(startIndex));
-        try {
-            Field field = dataClass.getDeclaredField(fieldName);
-            if (field != null) {
-                // 获取IColumn注解
-                IColumn iColumn = field.getAnnotation(IColumn.class);
-                if (iColumn != null) {
-                    String colName = iColumn.column();
-                    if (PikachuStrings.isNotNull(colName)) {
-                        return colName.toUpperCase();
-                    }
+        Field field = fieldMap.get(fieldName);
+        if (field != null) {
+            // 获取IColumn注解
+            IColumn iColumn = field.getAnnotation(IColumn.class);
+            if (iColumn != null) {
+                String colName = iColumn.column();
+                if (PikachuStrings.isNotNull(colName)) {
+                    return colName.toUpperCase();
                 }
             }
-        } catch (NoSuchFieldException e) {
-            e.printStackTrace();
         }
         String methodName = method.getName().toUpperCase();
-        return methodName.substring(startIndex);
+        return methodName.substring(startIndex).toUpperCase();
     }
     
 }
