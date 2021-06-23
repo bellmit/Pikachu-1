@@ -13,10 +13,22 @@ public class Where implements Serializable {
     private static final long serialVersionUID = 1L;
     // 条件名称（属性名称）
     private String k;
-    // "操作方式（ 包括：>, =, <, <>, >=, <=, like ）
+    // "操作方式（ 包括：>, =, <, <>, >=, <=, like, in ）
     private String o;
     // 条件值（属性值）
     private Object v;
+    
+    public static Where[] getLikeWhere(String k, Object v) {
+        return new Where[]{new Where(k, "like", v)};
+    }
+    
+    public static Where[] getInWhere(String k, Object v) {
+        return new Where[]{new Where(k, "in", v)};
+    }
+    
+    public static Where[] getEqualsWhere(String k, Object v) {
+        return new Where[]{new Where(k, "=", v)};
+    }
     
     public Where() {}
     
