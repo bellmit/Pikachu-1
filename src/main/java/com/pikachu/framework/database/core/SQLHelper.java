@@ -466,7 +466,7 @@ public final class SQLHelper {
                     failed = true;
                 }
             }
-            return failed ? sb.deleteCharAt(sb.length()).toString() : "";
+            return failed ? sb.deleteCharAt(sb.length() - 1).toString() : "";
         } else {
             return "";
         }
@@ -719,7 +719,7 @@ public final class SQLHelper {
                         valueList.add(s);
                     }
                 }
-            }else if(Enum.class.isAssignableFrom(c)){
+            } else if (Enum.class.isAssignableFrom(c)) {
                 Class<Enum> enumClass = (Class<Enum>) c;
                 Enum conditionValueEnum = Enum.valueOf(enumClass, value.toString());
                 valueList.add(conditionValueEnum);
