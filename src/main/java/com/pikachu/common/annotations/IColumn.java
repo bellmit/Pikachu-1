@@ -25,5 +25,11 @@ public @interface IColumn {
     boolean pk() default false;
 
     String column() default "";
+    
+    /**
+     * 不是数据库字段，则忽略参与SQL语句的编写
+     * @return
+     */
+    boolean ignore() default false;
 
 }
