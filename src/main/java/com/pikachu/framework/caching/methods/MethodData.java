@@ -62,6 +62,9 @@ public final class MethodData {
             if (NAME.startsWith("GET")) {
                 // 映射表的字段名,也是key
                 KEY = getKey(fieldMap, method, 3);
+                if (KEY == null) {
+                    continue;
+                }
                 // 属性名
                 propName = name.substring(3);
                 // 返回值所对应的数据库表sql类型
@@ -73,12 +76,18 @@ public final class MethodData {
                 if (paramSqlType != Types.NULL) {
                     // 字段名
                     KEY = getKey(fieldMap, method, 3);
+                    if (KEY == null) {
+                        continue;
+                    }
                     // 属性名
                     propName = name.substring(3);
                     sets.add(new MethodInfo(KEY, propName, method, dbType, paramSqlType));
                 }
             } else if (NAME.startsWith("IS")) {
                 KEY = getKey(fieldMap, method, 2);
+                if (KEY == null) {
+                    continue;
+                }
                 propName = name.substring(2);
                 returnSqlType = SQLHelper.getReturnSqlType(method);
                 gets.add(new MethodInfo(KEY, propName, method, dbType, returnSqlType));
@@ -150,6 +159,9 @@ public final class MethodData {
             // 获取IColumn注解
             IColumn iColumn = field.getAnnotation(IColumn.class);
             if (iColumn != null) {
+                if (iColumn.ignore()) {
+                    return null;
+                }
                 String colName = iColumn.column();
                 if (PikachuStrings.isNotNull(colName)) {
                     return colName.toUpperCase();

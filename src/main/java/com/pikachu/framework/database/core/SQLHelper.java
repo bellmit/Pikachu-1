@@ -759,7 +759,7 @@ public final class SQLHelper {
         if (sqlType == Types.CHAR && TypeMapping.BOOL == mapper) {
             return (Boolean) param ? "Y" : "N";
         } else {
-            if (param.getClass().isEnum()) {
+            if (param != null && param.getClass().isEnum()) {
                 return param.toString();
             }
             return param;
