@@ -136,7 +136,7 @@ public class SQLInfo<T> {
                 PikachuStrings.duplicate("?", ",", columns.size()) + ")";
         // 根据有注解的类,生成根据主键更新和查找的语句：Update语句和Select语句
         StringBuffer sb = new StringBuffer();
-        // 判断表信息有孝心
+        // 判断表信息有效性
         if (tableInfo != null && tableInfo.getPrimaryKeys() != null) {
             // 获取主键数组
             String[] pks = tableInfo.getPrimaryKeys();
