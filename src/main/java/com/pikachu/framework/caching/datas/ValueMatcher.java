@@ -1,6 +1,7 @@
 package com.pikachu.framework.caching.datas;
 
-import com.pikachu.common.collection.Where;
+import com.pikachu.common.collection.Operator;
+import com.pikachu.framework.database.core.Where;
 import com.pikachu.common.util.PikachuStrings;
 import com.pikachu.framework.caching.datas.matchers.ComparerManager;
 import com.pikachu.framework.caching.datas.matchers.IComparer;
@@ -72,9 +73,9 @@ public class ValueMatcher {
      */
     public static ValueMatcher getValueMatcher(Map<String, MethodInfo> gets, Where where) throws Exception {
         // 获取操作符
-        String operator = where.getO();
+        Operator operator = where.getO();
         // 判断操作符是否有效
-        if (PikachuStrings.isNotNull(operator)) {
+        if (operator!=null) {
             // 获取属性
             String[] props = where.getK().split("\\s*,\\s*");
             Method[] methods;
@@ -108,7 +109,7 @@ public class ValueMatcher {
             // 获取返回值类型（where的key可以有多个，但值只有一个，因为where的value只有一个类型）
             Class<?> returnType = methods[0].getReturnType();
             IComparer comparer = null;
-            if (operator.trim().toLowerCase().equals("like")) {
+            if (operator==Operator.LIKE) {
                 String strValue = "%%";
                 if (conditionValue != null && conditionValue.toString().trim().length() != 0) {
                     // 获取值
@@ -118,11 +119,10 @@ public class ValueMatcher {
                 LikeComparer likeComparer = new LikeComparer(strValue);
                 // 返回值匹配器
                 return new ValueMatcher(methods, likeComparer, strValue);
-            } else if (operator.trim().toLowerCase().equals("in")) {
+            } else if (operator==Operator.IN) {
                 return new ValueMatcher(methods, new InComparer(conditionValue), conditionValue);
             } else {
                 // 非like和in比较符的，conditionValue(Where条件的v)只能是单个值，不能以数组或集合的形式传入
-                operator = operator.trim();
                 comparer = ComparerManager.getComparer(returnType, operator);
                 // IParser<?, Object> parser = Parsers.getParser(returnType);
                 // value = parser.parse(value);

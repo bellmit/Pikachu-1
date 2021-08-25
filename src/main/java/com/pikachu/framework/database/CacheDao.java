@@ -4,10 +4,7 @@ import com.pikachu.common.events.IListener;
 import com.pikachu.common.util.PikachuStrings;
 import com.pikachu.framework.caching.datas.CacheData;
 import com.pikachu.framework.caching.datas.CacheManager;
-import com.pikachu.framework.database.core.SQLHelper;
-import com.pikachu.framework.database.core.SQLInfo;
-import com.pikachu.common.collection.KeyValue;
-import com.pikachu.common.collection.Where;
+import com.pikachu.framework.database.core.*;
 
 /**
  * @Desc 缓存dao，能使用缓存的，bean肯定有主键
@@ -288,17 +285,17 @@ public class CacheDao<T> implements IDao<T> {
     }
     
     @Override
-    public T[] getList(Where[] wheres, KeyValue[] orders) throws Exception {
+    public T[] getList(Where[] wheres, Order[] orders) throws Exception {
         return CacheManager.getList(this.dataClass, wheres, orders);
     }
     
     @Override
-    public T[] getPage(int page, int pageSize, Where[] wheres, KeyValue[] orders) throws Exception {
+    public T[] getPage(int page, int pageSize, Where[] wheres, Order[] orders) throws Exception {
         return CacheManager.getPage(this.dataClass, page, pageSize, wheres, orders);
     }
     
     @Override
-    public int update(KeyValue[] updates, Where[] wheres) throws Exception {
+    public int update(Update[] updates, Where[] wheres) throws Exception {
         CacheData<T> cacheData = CacheManager.lock(this.dataClass);
         
         int count = -1;
@@ -341,12 +338,12 @@ public class CacheDao<T> implements IDao<T> {
     }
     
     @Override
-    public T[] getList(String[] columns, Object[] values, KeyValue[] orders) throws Exception {
+    public T[] getList(String[] columns, Object[] values, Order[] orders) throws Exception {
         return this.getList(SQLHelper.getWheres(columns, values), orders);
     }
     
     @Override
-    public T[] getPage(int page, int pageSize, String[] columns, Object[] values, KeyValue[] orders) throws Exception {
+    public T[] getPage(int page, int pageSize, String[] columns, Object[] values, Order[] orders) throws Exception {
         return this.getPage(page, pageSize, SQLHelper.getWheres(columns, values), orders);
     }
     

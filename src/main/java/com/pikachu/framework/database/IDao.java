@@ -1,8 +1,9 @@
 package com.pikachu.framework.database;
 
 import com.pikachu.common.events.IListener;
-import com.pikachu.common.collection.KeyValue;
-import com.pikachu.common.collection.Where;
+import com.pikachu.framework.database.core.Order;
+import com.pikachu.framework.database.core.Update;
+import com.pikachu.framework.database.core.Where;
 
 /**
  * @Desc
@@ -71,15 +72,15 @@ public interface IDao<T> {
      * @return
      * @throws Exception
      */
-    T[] getList(Where[] wheres, KeyValue[] orders) throws Exception;
+    T[] getList(Where[] wheres, Order[] orders) throws Exception;
 
-    T[] getList(String[] columns, Object[] values, KeyValue[] orders) throws Exception;
+    T[] getList(String[] columns, Object[] values, Order[] orders) throws Exception;
 
-    T[] getPage(int page, int pageSize, Where[] wheres, KeyValue[] orders) throws Exception;
+    T[] getPage(int page, int pageSize, Where[] wheres, Order[] orders) throws Exception;
 
-    T[] getPage(int page, int pageSize, String[] columns, Object[] values, KeyValue[] orders) throws Exception;
+    T[] getPage(int page, int pageSize, String[] columns, Object[] values, Order[] orders) throws Exception;
 
-    int update(KeyValue[] updates, Where[] wheres) throws Exception;
+    int update(Update[] updates, Where[] wheres) throws Exception;
 
     int update(String[] updateColumns, Object[] updateValues, String[] whereColumns, Object[] whereValues) throws Exception;
 

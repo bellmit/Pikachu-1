@@ -1,23 +1,24 @@
 package com.pikachu.framework.caching.datas.matchers;
 
+import com.pikachu.common.collection.Operator;
 import com.pikachu.common.util.PikachuConverts;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * @Desc TODO
+ * @Desc
  * @Date 2021/6/13 14:31
  * @Author AD
  */
 public enum EnumComparer implements IComparer<Enum> {
-    EQUALS("=") {
+    EQUALS(Operator.EQUALS) {
         @Override
         public boolean compare(Enum compareValue, Enum conditionValue) {
             return compareValue == conditionValue;
         }
     },
-    NO_EQUALS("<>") {
+    NO_EQUALS(Operator.NO_EQUALS) {
         @Override
         public boolean compare(Enum compareValue, Enum conditionValue) {
             return compareValue != conditionValue;
@@ -34,15 +35,15 @@ public enum EnumComparer implements IComparer<Enum> {
         return PikachuConverts.toEnum(returnType, value.toString());
     }
     
-    private final String operator;
+    private final Operator operator;
     
-    private EnumComparer(String operator) {
+    private EnumComparer(Operator operator) {
         this.operator = operator;
     }
     
-    private static final Map<String, IComparer> map = new ConcurrentHashMap<>();
+    private static final Map<Operator, IComparer> map = new ConcurrentHashMap<>();
     
-    public static IComparer getComparer(String operator) {
+    public static IComparer getComparer(Operator operator) {
         return map.get(operator);
     }
     

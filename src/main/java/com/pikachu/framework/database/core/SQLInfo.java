@@ -1,7 +1,5 @@
 package com.pikachu.framework.database.core;
 
-import com.pikachu.common.collection.KeyValue;
-import com.pikachu.common.collection.Where;
 import com.pikachu.common.database.core.DatabaseType;
 import com.pikachu.common.util.PikachuArrays;
 import com.pikachu.common.util.PikachuConverts;
@@ -260,7 +258,7 @@ public class SQLInfo<T> {
      * @param orders 排序条件
      * @return SQLParams
      */
-    public SQLParams getRetrieve(Where[] wheres, KeyValue[] orders) {
+    public SQLParams getRetrieve(Where[] wheres, Order[] orders) {
         // 生成where参数和order参数
         SQLParams where = this.getWhere(wheres);
         if (where == null) {
@@ -307,7 +305,7 @@ public class SQLInfo<T> {
      * @param wheres  更新条件
      * @return SQLParams
      */
-    public SQLParams getUpdate(KeyValue[] updates, Where[] wheres) {
+    public SQLParams getUpdate(Update[] updates, Where[] wheres) {
         // 判断update参数和where参数的有效性
         SQLParams update = SQLHelper.getUpdateParams(methods.getMethodsGetMap(), updates);
         if (update == null) {
@@ -420,7 +418,7 @@ public class SQLInfo<T> {
         return SQLHelper.getWhereParams(methods.getMethodsGetMap(), wheres);
     }
 
-    public String getOrderSQL(KeyValue[] orders) {
+    public String getOrderSQL(Order[] orders) {
         return SQLHelper.getOrderSQL(methods.getMethodsGetMap(), orders);
     }
 

@@ -2,17 +2,15 @@ package com.pikachu;
 
 import com.pikachu.common.annotations.IColumn;
 import com.pikachu.common.annotations.ITable;
-import com.pikachu.common.collection.Where;
-import com.pikachu.framework.database.DaoManager;
-import com.pikachu.framework.database.IDao;
-import com.pikachu.framework.database.core.DatabaseConfig;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.StringJoiner;
 
 /**
  * @Desc
@@ -23,47 +21,47 @@ import java.util.*;
 public class Pikachu implements Serializable {
     
     public static void main(String[] args) throws Exception {
-        DatabaseConfig d = new DatabaseConfig();
-        d.setName("AD");
-        d.setUrl("jdbc:mysql://localhost:3306/study");
-        d.setDriver("com.mysql.jdbc.Driver");
-        d.setUser("root");
-        d.setPassword("123456");
-        
-        DaoManager daoManager = new DaoManager(d);
-        IDao<Pikachu> dao = daoManager.getDao(Pikachu.class);
-        Where[] ws = new Where[1];
-        List<Object> ages = new ArrayList<>();
-        ages.add(1);
-        ages.add(2);
-        int[] is = new int[2];
-        is[0] = 1;
-        is[1] = 2;
-        
-        Integer[] integers = new Integer[2];
-        integers[0] = 1;
-        integers[1] = 2;
-        Set<Enums> enums = new HashSet<>();
-        enums.add(Enums.ONE);
-        enums.add(Enums.two);
-        
-        Enums[] enumss = new Enums[2];
-        enumss[0]=Enums.ONE;
-        enumss[1]=Enums.two;
-        ws[0] = new Where("enums", "in", enums);
-        Pikachu[] ps = dao.getList(ws, null);
-        for (Pikachu p : ps) {
-            System.out.println(p);
-        }
-    
-        String[] pks = dao.getPrimaryKeys();
-        for (String pk : pks) {
-            System.out.println(pk);
-        }
-    
-        int count = dao.delete(new Where[]{new Where("id", "in", "1,2")});
-        System.out.println(count);
-    
+        // DatabaseConfig d = new DatabaseConfig();
+        // d.setName("AD");
+        // d.setUrl("jdbc:mysql://localhost:3306/study");
+        // d.setDriver("com.mysql.jdbc.Driver");
+        // d.setUser("root");
+        // d.setPassword("123456");
+        //
+        // DaoManager daoManager = new DaoManager(d);
+        // IDao<Pikachu> dao = daoManager.getDao(Pikachu.class);
+        // Where[] ws = new Where[1];
+        // List<Object> ages = new ArrayList<>();
+        // ages.add(1);
+        // ages.add(2);
+        // int[] is = new int[2];
+        // is[0] = 1;
+        // is[1] = 2;
+        //
+        // Integer[] integers = new Integer[2];
+        // integers[0] = 1;
+        // integers[1] = 2;
+        // Set<Enums> enums = new HashSet<>();
+        // enums.add(Enums.ONE);
+        // enums.add(Enums.two);
+        //
+        // Enums[] enumss = new Enums[2];
+        // enumss[0]=Enums.ONE;
+        // enumss[1]=Enums.two;
+        // ws[0] = new Where("enums", "in", enums);
+        // Pikachu[] ps = dao.getList(ws, null);
+        // for (Pikachu p : ps) {
+        //     System.out.println(p);
+        // }
+        //
+        // String[] pks = dao.getPrimaryKeys();
+        // for (String pk : pks) {
+        //     System.out.println(pk);
+        // }
+        //
+        // int count = dao.delete(new Where[]{new Where("id", "in", "1,2")});
+        // System.out.println(count);
+        //
     }
     
     @IColumn(doc = "主键", pk = true)

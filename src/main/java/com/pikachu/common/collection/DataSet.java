@@ -1,9 +1,6 @@
 package com.pikachu.common.collection;
 
-import com.pikachu.common.util.PikachuArrays;
-
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -17,19 +14,6 @@ public class DataSet {
     private Map<String, Object> datas = new HashMap<>();
     
     public DataSet() {
-    }
-    
-    /**
-     * 将键-值对都是字符串且转为大写后的列表存入map中
-     * @param nameValues
-     */
-    public DataSet(List<NameValue> nameValues) {
-        if (!PikachuArrays.isEmpty(nameValues)) {
-            for (NameValue nv : nameValues) {
-                datas.put(nv.getName().toUpperCase(), nv.getValue());
-            }
-        }
-        
     }
     
     /**

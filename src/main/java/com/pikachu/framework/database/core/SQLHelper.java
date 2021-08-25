@@ -1,7 +1,7 @@
 package com.pikachu.framework.database.core;
 
-import com.pikachu.common.collection.KeyValue;
-import com.pikachu.common.collection.Where;
+import com.pikachu.common.collection.Operator;
+import com.pikachu.common.collection.Sort;
 import com.pikachu.common.database.core.DatabaseType;
 import com.pikachu.common.util.PikachuConverts;
 import com.pikachu.common.util.PikachuStrings;
@@ -67,9 +67,8 @@ public final class SQLHelper {
             Where[] wheres = new Where[columns.length];
             
             for (int i = 0, L = columns.length; i < L; ++i) {
-                wheres[i] = new Where(columns[i], "=", values[i]);
+                wheres[i] = new Where(values[i], Operator.EQUALS, columns[i]);
             }
-            
             return wheres;
         } else {
             return null;
@@ -84,12 +83,12 @@ public final class SQLHelper {
      *
      * @return KeyValue[]
      */
-    public static KeyValue[] getUpdates(String[] columns, Object[] values) {
+    public static Update[] getUpdates(String[] columns, Object[] values) {
         if (isValid(columns, values)) {
-            KeyValue[] kvs = new KeyValue[columns.length];
+            Update[] kvs = new Update[columns.length];
             
             for (int i = 0, L = columns.length; i < L; ++i) {
-                kvs[i] = new KeyValue(columns[i], values[i]);
+                kvs[i] = new Update(columns[i], values[i]);
             }
             
             return kvs;
@@ -361,8 +360,8 @@ public final class SQLHelper {
                     // 判断字段有效性
                     if (column != null) {
                         // 修正操作符号，如果是like返回LIKE，其它直接返回比较符号，如：=,>,<>,>=
-                        String o = fixOperation(where.getO());
-                        if (o == null || o.trim().length() == 0) {
+                        Operator o = where.getO();
+                        if (o == null) {
                             return null;
                         }
                         // 获取值
@@ -372,7 +371,8 @@ public final class SQLHelper {
                         - * 匹配前面的子表达式零次或多次
                          */
                         // 该正则表达式要匹配："   ,   "，将where条件的key如：XXX , YYY进行分割
-                        String[] keys = column.toUpperCase().split("\\s*,\\s*");
+                        // String[] keys = column.toUpperCase().split("\\s*,\\s*");
+                        String[] keys = column.split(",");
                         if (keys.length > 1) {
                             if (sb.length() == 0) {
                                 sb.append("(");
@@ -430,12 +430,12 @@ public final class SQLHelper {
      *
      * @return 排序语句, 如：order by xxx asc,xxx desc
      */
-    public static String getOrderSQL(Map<String, MethodInfo> gets, KeyValue[] orders) {
+    public static String getOrderSQL(Map<String, MethodInfo> gets, Order[] orders) {
         if (orders != null && orders.length > 0) {
             StringBuilder sb = new StringBuilder(" ORDER BY ");
             boolean failed = false;
             
-            for (KeyValue order : orders) {
+            for (Order order : orders) {
                 // 获取key,并判断是否有效
                 String k = order.getK();
                 if (k == null) {
@@ -443,14 +443,9 @@ public final class SQLHelper {
                 }
                 
                 // 获取value,判断是asc(升序)或desc(降序)
-                String v = String.valueOf(order.getV());
-                if (v != null) {
-                    v = v.toUpperCase();
-                    if (!"DESC".equals(v) && !"ASC".equals(v)) {
-                        return null;
-                    }
-                } else {
-                    v = "ASC";
+                Sort v = order.getV();
+                if (v == null) {
+                    v = Sort.ASC;
                 }
                 
                 // 判断该排序字段key的有效性
@@ -480,7 +475,7 @@ public final class SQLHelper {
      *
      * @return SQLParams sql参数对象
      */
-    public static SQLParams getUpdateParams(Map<String, MethodInfo> gets, KeyValue[] updates) {
+    public static SQLParams getUpdateParams(Map<String, MethodInfo> gets, Update[] updates) {
         if (updates != null && updates.length != 0) {
             // 创建容器
             StringBuilder sb = new StringBuilder();
@@ -489,7 +484,7 @@ public final class SQLHelper {
             // 循环生成
             for (int i = 0; i < updates.length; ++i) {
                 // 获取更新字段,判断有效性
-                KeyValue update = updates[i];
+                Update update = updates[i];
                 String k = update.getK();
                 if (PikachuStrings.isNull(k)) {
                     return null;
@@ -779,7 +774,7 @@ public final class SQLHelper {
      *
      * @return
      */
-    private static boolean analyzeWhere(String column, String o, Object value, Map<String, MethodInfo> gets, StringBuilder sb,
+    private static boolean analyzeWhere(String column, Operator o, Object value, Map<String, MethodInfo> gets, StringBuilder sb,
             List<Object> params, List<Integer> types) {
         // 获取该字段对应的get方法，没有属性方法，则不能获取对应数据库中的值
         MethodInfo get = gets.get(column);
@@ -790,13 +785,13 @@ public final class SQLHelper {
         // 判断值是不是为空,如果值为空，解析称对应的sql语句
         if (value == null || "".equals(value.toString().trim()) || "null".equals(value)) {
             // 值=null，sql语句解析为is null
-            if ("=".equals(o)) {
+            if (o == Operator.EQUALS) {
                 sb.append(column);
                 sb.append(" IS NULL");
                 return true;
             }
             // 值!=null，sql语句解析称is not null
-            if ("<>".equals(o)) {
+            if (o == Operator.NO_EQUALS) {
                 sb.append(column);
                 sb.append(" IS NOT NULL");
                 return true;
@@ -804,7 +799,7 @@ public final class SQLHelper {
         }
         // 获取对应的数据库数据类型
         int type = get.getSqlType();
-        if (" IN ".equals(o)) {
+        if (o == Operator.IN) {
             List<Object> valueList = getConditionValuesWithOperatorIsIn(value);
             if (valueList == null || valueList.size() == 0) {
                 return false;
@@ -827,7 +822,7 @@ public final class SQLHelper {
         } else {
             Object param;
             if (type == Types.VARCHAR) {
-                if (" LIKE ".equals(o)) {
+                if (o == Operator.LIKE) {
                     // 将column转为大写(upper是数据库里的函数)
                     column = "UPPER(" + column + ")";
                 /*
@@ -854,35 +849,35 @@ public final class SQLHelper {
         
     }
     
-    /**
-     * 修正操作符
-     *
-     * @param operator 操作符，如：>,<,=,<>,>=,<=,like
-     *
-     * @return
-     */
-    private static String fixOperation(String operator) {
-        // 判断操作符的有效性
-        if (operator != null && !"".equals(operator.trim())) {
-            // 判断操作符是否是like
-            if (!operator.equals("=") && !operator.equals("<>") && !operator.equals(">") && !operator.equals("<") &&
-                !operator.equals(">=") && !operator.equals("<=")) {
-                // 返回大写LIKE
-                if (operator.trim().toLowerCase().equals("like")) {
-                    return " LIKE ";
-                } else if (operator.trim().toLowerCase().equals("in")) {
-                    return " IN ";
-                } else {
-                    return operator;
-                }
-            } else {
-                // 返回比较符号
-                return operator;
-            }
-        } else {
-            return null;
-        }
-    }
+    // /**
+    //  * 修正操作符
+    //  *
+    //  * @param operator 操作符，如：>,<,=,<>,>=,<=,like
+    //  *
+    //  * @return
+    //  */
+    // private static String fixOperation(String operator) {
+    //     // 判断操作符的有效性
+    //     if (operator != null && !"".equals(operator.trim())) {
+    //         // 判断操作符是否是like
+    //         if (!operator.equals("=") && !operator.equals("<>") && !operator.equals(">") && !operator.equals("<") &&
+    //             !operator.equals(">=") && !operator.equals("<=")) {
+    //             // 返回大写LIKE
+    //             if (operator.trim().toLowerCase().equals("like")) {
+    //                 return " LIKE ";
+    //             } else if (operator.trim().toLowerCase().equals("in")) {
+    //                 return " IN ";
+    //             } else {
+    //                 return operator;
+    //             }
+    //         } else {
+    //             // 返回比较符号
+    //             return operator;
+    //         }
+    //     } else {
+    //         return null;
+    //     }
+    // }
     
     private static boolean isValid(Object[] os1, Object[] os2) {
         if (os1 != null && os2 != null && os1.length == os2.length) {

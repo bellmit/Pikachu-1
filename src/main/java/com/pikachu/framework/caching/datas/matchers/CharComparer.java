@@ -1,41 +1,43 @@
 package com.pikachu.framework.caching.datas.matchers;
 
+import com.pikachu.common.collection.Operator;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public enum CharComparer implements IComparer<Character> {
-    EQUALS("=") {
+    EQUALS(Operator.EQUALS) {
         @Override
         public boolean compare(Character compareValue, Character conditionValue) {
             return compareValue.compareTo(conditionValue) == 0;
         }
     },
-    NO_EQUALS("<>") {
+    NO_EQUALS(Operator.NO_EQUALS) {
         @Override
         public boolean compare(Character compareValue, Character conditionValue) {
             return compareValue.compareTo(conditionValue) != 0;
         }
     },
-    GREATER(">") {
+    GREATER(Operator.GREATER) {
         @Override
         public boolean compare(Character compareValue, Character conditionValue) {
             return compareValue > conditionValue;
         }
     },
 
-    GREATER_EQUALS(">=") {
+    GREATER_EQUALS(Operator.GREATER_EQUALS) {
         @Override
         public boolean compare(Character compareValue, Character conditionValue) {
             return compareValue >= conditionValue;
         }
     },
-    LESS("<") {
+    LESS(Operator.LESS) {
         @Override
         public boolean compare(Character compareValue, Character conditionValue) {
             return compareValue < conditionValue;
         }
     },
-    LESS_EQUALS("<=") {
+    LESS_EQUALS(Operator.LESS_EQUALS) {
         @Override
         public boolean compare(Character compareValue, Character conditionValue) {
             return compareValue <= conditionValue;
@@ -46,15 +48,15 @@ public enum CharComparer implements IComparer<Character> {
     public Character parseConditionValue(Class<Character>returnType,Object value){
         return Character.valueOf(value.toString().charAt(0));
     }
-    private final String operator;
+    private final Operator operator;
 
-    private CharComparer(String operator) {
+    private CharComparer(Operator operator) {
         this.operator = operator;
     }
 
-    private static final Map<String, IComparer> map = new ConcurrentHashMap<>();
+    private static final Map<Operator, IComparer> map = new ConcurrentHashMap<>();
 
-    public static IComparer getComparer(String operator) {
+    public static IComparer getComparer(Operator operator) {
         return map.get(operator);
     }
 

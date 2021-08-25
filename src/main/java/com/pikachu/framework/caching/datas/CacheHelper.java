@@ -1,12 +1,15 @@
 package com.pikachu.framework.caching.datas;
 
+import com.pikachu.common.collection.Operator;
+import com.pikachu.common.collection.Sort;
+import com.pikachu.common.util.PikachuArrays;
 import com.pikachu.common.util.PikachuConverts;
 import com.pikachu.framework.caching.datas.matchers.ComparerManager;
 import com.pikachu.framework.caching.methods.MethodInfo;
-import com.pikachu.common.collection.KeyValue;
-import com.pikachu.common.collection.Where;
-import com.pikachu.common.util.PikachuArrays;
+import com.pikachu.framework.database.core.Order;
 import com.pikachu.framework.database.core.SQLHelper;
+import com.pikachu.framework.database.core.Update;
+import com.pikachu.framework.database.core.Where;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
@@ -51,11 +54,11 @@ public final class CacheHelper {
         }
     }
     
-    public static void upperCaseWhereKeys(Where[] wheres) {
-        Arrays.stream(wheres).forEach(where -> {
-            where.setK(where.getK().toUpperCase());
-        });
-    }
+    // public static void upperCaseWhereKeys(Where[] wheres) {
+    //     Arrays.stream(wheres).forEach(where -> {
+    //         where.setK(where.getK().toUpperCase());
+    //     });
+    // }
     
     /**
      * 获取结果：key=value,key1=value1
@@ -92,7 +95,7 @@ public final class CacheHelper {
                     return null;
                 }
                 sb.append(where.getK());
-                sb.append(where.getO().toUpperCase());
+                sb.append(where.getO().getKey());
                 Object value = where.getV();
                 if (value != null) {
                     if (value instanceof Date) {
@@ -127,7 +130,7 @@ public final class CacheHelper {
      *
      * @return
      */
-    public static int getHistoryCacheKey(String action, Where[] wheres, KeyValue[] orders) {
+    public static int getHistoryCacheKey(String action, Where[] wheres, Order[] orders) {
         if (action != null && !"".equals(action.trim())) {
             StringBuilder sb = new StringBuilder(action);
             Object value;
@@ -160,13 +163,13 @@ public final class CacheHelper {
                         sb.append(where.getO());
                         value = where.getV();
                         // 操作符不是in
-                        if (!"in".equalsIgnoreCase(where.getO())) {
+                        if (where.getO() != Operator.IN) {
                             if (value != null) {
                                 if (value instanceof Date) {
                                     sb.append(((Date) value).getTime());
-                                } else if(value instanceof LocalDateTime){
-                                    sb.append(((LocalDateTime)value).toString());
-                                }else {
+                                } else if (value instanceof LocalDateTime) {
+                                    sb.append(((LocalDateTime) value).toString());
+                                } else {
                                     sb.append(value);
                                 }
                             }
@@ -183,15 +186,15 @@ public final class CacheHelper {
             
             if (!PikachuArrays.isEmpty(orders)) {
                 for (int i = 0, L = orders.length; i < L; ++i) {
-                    KeyValue kv = orders[i];
-                    if (kv != null) {
-                        String key = kv.getK();
+                    Order order = orders[i];
+                    if (order != null) {
+                        String key = order.getK();
                         if (key != null && key.length() != 0) {
                             sb.append("$");
                             sb.append(key);
                             sb.append(":");
-                            value = kv.getV();
-                            if (value != null && "DESC".equals(value.toString().toUpperCase())) {
+                            Sort sort = order.getV();
+                            if (sort != null && sort == Sort.DESC) {
                                 sb.append("DESC");
                             } else {
                                 sb.append("ASC");
@@ -339,7 +342,7 @@ public final class CacheHelper {
         return true;
     }
     
-    public static void sortArray(Map<String, MethodInfo> getMethodInfos, KeyValue[] kvs, Object[] os) {
+    public static void sortArray(Map<String, MethodInfo> getMethodInfos, Order[] kvs, Object[] os) {
         if (kvs != null && kvs.length != 0 && os != null && os.length >= 2) {
             final ValueSorter[] sorters = new ValueSorter[kvs.length];
             
@@ -367,11 +370,11 @@ public final class CacheHelper {
         }
     }
     
-    public static ValueUpdater[] getUpdaters(Map<String, MethodInfo> setMethods, KeyValue[] updates) throws Exception {
+    public static ValueUpdater[] getUpdaters(Map<String, MethodInfo> setMethods, Update[] updates) throws Exception {
         ValueUpdater[] updaters = new ValueUpdater[updates.length];
         
         for (int i = 0, L = updates.length; i < L; ++i) {
-            KeyValue update = updates[i];
+            Update update = updates[i];
             String prop = update.getK().toUpperCase();
             Method setMethod = setMethods.get(prop).getMethod();
             // 将update的值转为set方法的参数类型

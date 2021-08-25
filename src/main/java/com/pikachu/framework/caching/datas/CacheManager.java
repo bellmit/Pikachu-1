@@ -1,8 +1,9 @@
 package com.pikachu.framework.caching.datas;
 
-import com.pikachu.common.collection.KeyValue;
-import com.pikachu.common.collection.Where;
 import com.pikachu.common.database.core.DatabaseType;
+import com.pikachu.framework.database.core.Order;
+import com.pikachu.framework.database.core.Update;
+import com.pikachu.framework.database.core.Where;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -190,7 +191,7 @@ public final class CacheManager {
         }
     }
     
-    public static <T> T[] getList(Class<T> dataClass, Where[] wheres, KeyValue[] orders) throws Exception {
+    public static <T> T[] getList(Class<T> dataClass, Where[] wheres, Order[] orders) throws Exception {
         if (dataClass == null) {
             return null;
         } else {
@@ -199,7 +200,7 @@ public final class CacheManager {
         }
     }
     
-    public static <T> T[] getPage(Class<T> dataClass, int page, int pageSize, Where[] wheres, KeyValue[] orders)
+    public static <T> T[] getPage(Class<T> dataClass, int page, int pageSize, Where[] wheres, Order[] orders)
             throws Exception {
         if (dataClass == null) {
             return null;
@@ -209,7 +210,7 @@ public final class CacheManager {
         }
     }
     
-    public static <T> void update(CacheData<T> cache, KeyValue[] updates, Where[] wheres) throws Exception {
+    public static <T> void update(CacheData<T> cache, Update[] updates, Where[] wheres) throws Exception {
         if (cache != null && updates != null && updates.length != 0) {
             cache.update(updates, wheres);
         }

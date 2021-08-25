@@ -1,9 +1,10 @@
 package com.pikachu.framework.caching.datas;
 
-import com.pikachu.common.collection.KeyValue;
-import com.pikachu.common.collection.Where;
 import com.pikachu.common.database.core.DatabaseType;
+import com.pikachu.framework.database.core.Order;
 import com.pikachu.framework.database.core.SQLHelper;
+import com.pikachu.framework.database.core.Update;
+import com.pikachu.framework.database.core.Where;
 
 /**
  * @Desc：
@@ -106,7 +107,7 @@ public class DataCaching<T> extends CacheData<T> {
 
     }
 
-    public void update(KeyValue[] kvs, Where[] wheres) throws Exception {
+    public void update(Update[] kvs, Where[] wheres) throws Exception {
         super.lock();
 
         try {
@@ -156,19 +157,19 @@ public class DataCaching<T> extends CacheData<T> {
         return super.getCount(SQLHelper.getWheres(props, values));
     }
 
-    public T[] getList(Where[] wheres, KeyValue[] kvs) throws Exception {
+    public T[] getList(Where[] wheres, Order[] kvs) throws Exception {
         return super.getList(wheres, kvs);
     }
 
-    public T[] getList(String[] props, Object[] values, KeyValue[] kvs) throws Exception {
+    public T[] getList(String[] props, Object[] values, Order[] kvs) throws Exception {
         return super.getList(SQLHelper.getWheres(props, values), kvs);
     }
 
-    public T[] getPage(int page, int var2, Where[] wheres, KeyValue[] kvs) throws Exception {
+    public T[] getPage(int page, int var2, Where[] wheres, Order[] kvs) throws Exception {
         return super.getPage(page, var2, wheres, kvs);
     }
 
-    public T[] getPage(int var1, int var2, String[] props, Object[] values, KeyValue[] kvs) throws Exception {
+    public T[] getPage(int var1, int var2, String[] props, Object[] values, Order[] kvs) throws Exception {
         return super.getPage(var1, var2, SQLHelper.getWheres(props, values), kvs);
     }
 }

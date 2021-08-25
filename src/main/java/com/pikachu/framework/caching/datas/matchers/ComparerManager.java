@@ -1,5 +1,6 @@
 package com.pikachu.framework.caching.datas.matchers;
 
+import com.pikachu.common.collection.Operator;
 import com.pikachu.framework.caching.datas.ClassCode;
 
 /**
@@ -9,7 +10,7 @@ import com.pikachu.framework.caching.datas.ClassCode;
  */
 public final class ComparerManager {
     
-    public static IComparer getComparer(Class<?> clazz, String operator) {
+    public static IComparer getComparer(Class<?> clazz, Operator operator) {
         int type = ClassCode.getType(clazz);
         switch (type) {
             case ClassCode.BYTE:
@@ -44,7 +45,7 @@ public final class ComparerManager {
     }
     
     public static Object parseValue(Class<?> clazz, Object converted) {
-        IComparer comparer = getComparer(clazz, "=");
+        IComparer comparer = getComparer(clazz, Operator.EQUALS);
         if (comparer == null) {
             return converted;
         }

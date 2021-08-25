@@ -1,5 +1,6 @@
 package com.pikachu.framework.caching.datas.matchers;
 
+import com.pikachu.common.collection.Operator;
 import com.pikachu.common.util.PikachuConverts;
 
 import java.util.Map;
@@ -11,38 +12,38 @@ import java.util.concurrent.ConcurrentHashMap;
  * @Date：2020/1/13 15:31
  */
 public enum ByteComparer implements IComparer<Byte> {
-    EQUALS("=") {
+    EQUALS(Operator.EQUALS) {
         @Override
         public boolean compare(Byte compareValue, Byte conditionValue) {
             return compareValue.compareTo(conditionValue) == 0;
         }
     },
-    NO_EQUALS("<>") {
+    NO_EQUALS(Operator.NO_EQUALS) {
         @Override
         public boolean compare(Byte compareValue, Byte conditionValue) {
             return compareValue.compareTo(conditionValue) != 0;
         }
     },
-    GREATER(">") {
+    GREATER(Operator.GREATER) {
         @Override
         public boolean compare(Byte compareValue, Byte conditionValue) {
             return compareValue > conditionValue;
         }
     },
 
-    GREATER_EQUALS(">=") {
+    GREATER_EQUALS(Operator.GREATER_EQUALS) {
         @Override
         public boolean compare(Byte compareValue, Byte conditionValue) {
             return compareValue >= conditionValue;
         }
     },
-    LESS("<") {
+    LESS(Operator.LESS) {
         @Override
         public boolean compare(Byte compareValue, Byte conditionValue) {
             return compareValue < conditionValue;
         }
     },
-    LESS_EQUALS("<=") {
+    LESS_EQUALS(Operator.LESS_EQUALS) {
         @Override
         public boolean compare(Byte compareValue, Byte conditionValue) {
             return compareValue <= conditionValue;
@@ -53,15 +54,15 @@ public enum ByteComparer implements IComparer<Byte> {
         return PikachuConverts.toByte(value);
     }
 
-    private final String operator;
+    private final Operator operator;
 
-    private ByteComparer(String operator) {
+    private ByteComparer(Operator operator) {
         this.operator = operator;
     }
 
-    private static final Map<String, IComparer> map = new ConcurrentHashMap<>();
+    private static final Map<Operator, IComparer> map = new ConcurrentHashMap<>();
 
-    public static IComparer getComparer(String operator) {
+    public static IComparer getComparer(Operator operator) {
         return map.get(operator);
     }
 

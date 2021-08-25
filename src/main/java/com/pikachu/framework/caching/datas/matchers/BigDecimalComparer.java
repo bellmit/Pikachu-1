@@ -1,5 +1,6 @@
 package com.pikachu.framework.caching.datas.matchers;
 
+import com.pikachu.common.collection.Operator;
 import com.pikachu.common.util.PikachuConverts;
 
 import java.math.BigDecimal;
@@ -56,7 +57,7 @@ public enum BigDecimalComparer implements IComparer<BigDecimal> {
     
     private static final Map<String, IComparer> map = new ConcurrentHashMap<>();
     
-    public static IComparer getComparer(String operator) {
+    public static IComparer getComparer(Operator operator) {
         return map.get(operator);
     }
     

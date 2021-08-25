@@ -1,5 +1,7 @@
 package com.pikachu.framework.caching.datas.matchers;
 
+import com.pikachu.common.collection.Operator;
+
 import java.text.Collator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -93,7 +95,7 @@ public enum StringComparer implements IComparer<String> {
     
     private static final Map<String, IComparer> map = new ConcurrentHashMap<>();
     
-    public static IComparer getComparer(String operator) {
+    public static IComparer getComparer(Operator operator) {
         return map.get(operator);
     }
     

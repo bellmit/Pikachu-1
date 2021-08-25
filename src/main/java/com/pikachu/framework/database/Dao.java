@@ -1,16 +1,12 @@
 package com.pikachu.framework.database;
 
+import com.pikachu.common.database.DatabaseAccess;
 import com.pikachu.common.events.IListener;
-import com.pikachu.framework.database.core.SQLHelper;
-import com.pikachu.framework.database.core.SQLInfo;
-import com.pikachu.framework.database.core.SQLParams;
+import com.pikachu.framework.database.core.*;
 import com.pikachu.framework.database.reader.DaoBeanReader;
 import com.pikachu.framework.database.reader.DaoCountReader;
 import com.pikachu.framework.database.reader.DaoListReader;
 import com.pikachu.framework.database.reader.DaoPageReader;
-import com.pikachu.common.collection.KeyValue;
-import com.pikachu.common.collection.Where;
-import com.pikachu.common.database.DatabaseAccess;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -205,7 +201,7 @@ public class Dao<T> extends DatabaseAccess implements IDao<T> {
     }
     
     @Override
-    public T[] getList(Where[] wheres, KeyValue[] orders) throws Exception {
+    public T[] getList(Where[] wheres, Order[] orders) throws Exception {
         SQLParams param = sqlInfo.getRetrieve(wheres, orders);
         if (param == null) {
             return null;
@@ -222,7 +218,7 @@ public class Dao<T> extends DatabaseAccess implements IDao<T> {
     }
     
     @Override
-    public T[] getPage(int page, int pageSize, Where[] wheres, KeyValue[] orders) throws Exception {
+    public T[] getPage(int page, int pageSize, Where[] wheres, Order[] orders) throws Exception {
         SQLParams param = sqlInfo.getRetrieve(wheres, orders);
         if (param == null) return null;
         if (page <= 0) {
@@ -249,7 +245,7 @@ public class Dao<T> extends DatabaseAccess implements IDao<T> {
     }
     
     @Override
-    public int update(KeyValue[] updates, Where[] wheres) throws Exception {
+    public int update(Update[] updates, Where[] wheres) throws Exception {
         SQLParams param = sqlInfo.getUpdate(updates, wheres);
         if (param == null) {
             return -1;
@@ -291,12 +287,12 @@ public class Dao<T> extends DatabaseAccess implements IDao<T> {
     }
     
     @Override
-    public T[] getList(String[] columns, Object[] values, KeyValue[] orders) throws Exception {
+    public T[] getList(String[] columns, Object[] values, Order[] orders) throws Exception {
         return this.getList(SQLHelper.getWheres(columns, values), orders);
     }
     
     @Override
-    public T[] getPage(int page, int pageSize, String[] columns, Object[] values, KeyValue[] orders) throws Exception {
+    public T[] getPage(int page, int pageSize, String[] columns, Object[] values, Order[] orders) throws Exception {
         return this.getPage(page, pageSize, SQLHelper.getWheres(columns, values), orders);
     }
     

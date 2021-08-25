@@ -1,12 +1,13 @@
 package com.pikachu.framework.caching.datas;
 
-import com.pikachu.common.events.IListener;
-import com.pikachu.common.collection.KeyValue;
-import com.pikachu.common.collection.Where;
 import com.pikachu.common.database.core.DatabaseType;
 import com.pikachu.common.events.Dispatcher;
+import com.pikachu.common.events.IListener;
 import com.pikachu.framework.caching.methods.MethodData;
 import com.pikachu.framework.caching.methods.MethodManager;
+import com.pikachu.framework.database.core.Order;
+import com.pikachu.framework.database.core.Update;
+import com.pikachu.framework.database.core.Where;
 
 import java.lang.reflect.Array;
 import java.util.*;
@@ -219,7 +220,7 @@ public class CacheData<T> {
         if (this.dataMap.size() != 0) {
             if (wheres != null && wheres.length > 0) {
                 // 将where的key全部转为大写
-                CacheHelper.upperCaseWhereKeys(wheres);
+                // CacheHelper.upperCaseWhereKeys(wheres);
                 // 获取主键值的hash code字符串，where数组的操作符必须都是"="
                 String pkHashCode = CacheHelper.getPrimaryValueByWheres(this.pks, wheres);
                 // 主键缓存
@@ -288,7 +289,7 @@ public class CacheData<T> {
         return data;
     }
 
-    void update(KeyValue[] updates, Where[] wheres) throws Exception {
+    void update(Update[] updates, Where[] wheres) throws Exception {
         // 根据where条件获取需要更新的数据
         T[] needUpdateDatas = this.getList(wheres, null);
         if (needUpdateDatas.length != 0) {
@@ -359,7 +360,7 @@ public class CacheData<T> {
         if (size == 0) {
             return null;
         } else if (wheres != null && wheres.length > 0) {
-            CacheHelper.upperCaseWhereKeys(wheres);
+            // CacheHelper.upperCaseWhereKeys(wheres);
             // 获取主键值
             String pkValue = CacheHelper.getPrimaryValueByWheres(this.pks, wheres);
             if (pkValue != null) {
@@ -390,7 +391,7 @@ public class CacheData<T> {
     boolean contains(Where[] wheres) throws Exception {
         int size = this.dataMap.size();
         if (wheres != null && wheres.length > 0 && size != 0) {
-            CacheHelper.upperCaseWhereKeys(wheres);
+            // CacheHelper.upperCaseWhereKeys(wheres);
             String pkValue = CacheHelper.getPrimaryValueByWheres(this.pks, wheres);
             if (pkValue != null) {
                 return this.dataMap.get(pkValue) != null;
@@ -437,7 +438,7 @@ public class CacheData<T> {
                 }
             }
 
-            CacheHelper.upperCaseWhereKeys(wheres);
+            // CacheHelper.upperCaseWhereKeys(wheres);
             String pkValue = CacheHelper.getPrimaryValueByWheres(this.pks, wheres);
             if (pkValue != null) {
                 return this.dataMap.containsKey(pkValue) ? 1 : 0;
@@ -475,7 +476,7 @@ public class CacheData<T> {
      * @return
      * @throws Exception
      */
-    T[] getList(Where[] wheres, KeyValue[] orders) throws Exception {
+    T[] getList(Where[] wheres, Order[] orders) throws Exception {
         // 在CacheDao的构造方法初始化中，已经从数据库中获取了全部的数据
         if (this.dataMap.size() == 0) {
             return (T[]) Array.newInstance(this.dataClass, 0);
@@ -499,7 +500,7 @@ public class CacheData<T> {
             // 判断where查询条件是否有效
             if (wheres != null && wheres.length != 0) {
                 // 将where查询条件的key转为大写
-                CacheHelper.upperCaseWhereKeys(wheres);
+                // CacheHelper.upperCaseWhereKeys(wheres);
                 // 根据where计算主键值（判断wheres数组是否都是主键&比较符是"="，先按照主键查找）
                 String primaryValue = CacheHelper.getPrimaryValueByWheres(this.pks, wheres);
                 if (primaryValue != null) {
@@ -548,7 +549,7 @@ public class CacheData<T> {
         }
     }
 
-    T[] getPage(int page, int pageSize, Where[] wheres, KeyValue[] kvs) throws Exception {
+    T[] getPage(int page, int pageSize, Where[] wheres, Order[] kvs) throws Exception {
         if (page <= 0) {
             page = 1;
         }
@@ -573,7 +574,7 @@ public class CacheData<T> {
 
             T[] datas = this.getArrayData();
             if (wheres != null && wheres.length != 0) {
-                CacheHelper.upperCaseWhereKeys(wheres);
+                // CacheHelper.upperCaseWhereKeys(wheres);
                 ValueMatcher[] valueMatchers = CacheHelper.getWhereMatchers(
                         this.methods.getMethodsGetMap(), wheres);
                 List<T> dataList = new ArrayList<>();
